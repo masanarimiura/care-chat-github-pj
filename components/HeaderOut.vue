@@ -9,8 +9,15 @@
         </div>
       </NuxtLink>
     </div>
+    <div class="header-in_logout" @click="loginId()">
+      <img src="../img/logout.png">
+      <p>ログインIDチェック</p>
+    </div>
   </div>
 </template>
+
+<script>
+</script>
 
 <style>
 .header-out_inner {

@@ -4,51 +4,155 @@
     <div class="register-worker">
       <div class="register-worker_box">
         <h3 class="register-worker_box_ttl">ケアワーカー新規登録</h3>
-        <p class="register-worker_box_content">※医療福祉従事者の方のみこちらより作成をお願いします。</p>
-        <p class="register-worker_box_content">※患者様ご本人・ご家族様等は<NuxtLink to="/register-client">クライアント新規登録</NuxtLink>ページへ移動して下さい。</p>
-        
+        <p class="register-worker_box_content">
+          ※医療福祉従事者の方のみこちらより作成をお願いします。
+        </p>
+        <p class="register-worker_box_content">
+          ※患者様ご本人・ご家族様等は<NuxtLink to="/register-client"
+            >クライアント新規登録</NuxtLink
+          >ページへ移動して下さい。
+        </p>
+
         <br />
         <validation-observer ref="obs" v-slot="ObserverProps">
-          <validation-provider v-slot="{ errors }" rules="required|max:20">
+          <validation-provider v-slot="{ errors }" rules="required|max:100">
             <p class="register-worker_box_input_ttl">お名前</p>
-            <p class="register-worker_box_input_content">※患者様名ではなくご登録者様ご本人様のお名前を入力して下さい。</p>
-            <input v-model="name" type="name" name="お名前" required placeholder="お名前" />
+            <p class="register-worker_box_input_content">
+              ※患者様名ではなくご登録者様ご本人様のお名前を入力して下さい。
+            </p>
+            <input
+              v-model="name"
+              type="text"
+              name="お名前"
+              required
+              placeholder="お名前"
+            />
             <div class="error">{{ errors[0] }}</div>
           </validation-provider>
           <br />
-          <validation-provider v-slot="{ errors }" rules="required|email">
+          <validation-provider
+            v-slot="{ errors }"
+            rules="required|email|max:256"
+          >
             <p class="register-worker_box_input_ttl">メールアドレス</p>
-            <input v-model="email" type="email" name="メールアドレス" required placeholder="メールアドレス" />
+            <input
+              v-model="email"
+              type="email"
+              name="メールアドレス"
+              required
+              placeholder="メールアドレス"
+            />
             <div class="error">{{ errors[0] }}</div>
           </validation-provider>
           <br />
-          <validation-provider v-slot="{ errors }" rules="min:8|max:12">
-            <p class="register-worker_box_input_ttl">電話番号</p>
-            <input v-model="number" type="tel" name="電話番号" required placeholder="電話番号" />
-            <div class="error">{{ errors[0] }}</div>
-          </validation-provider>
-          <br />
-          <validation-provider v-slot="{ errors }" vid="passwordConfirm" rules="required|min:6|max:256|alpha_dash">
+          <validation-provider
+            v-slot="{ errors }"
+            vid="passwordConfirm"
+            rules="required|min:6|max:256|alpha_dash"
+          >
             <p class="register-worker_box_input_ttl">パスワード</p>
-            <p class="register-worker_box_input_content">※半角入力、アルファベット、数字を6文字以上で作成して下さい。</p>
-            <input v-model="password" type="password" name="パスワード" required placeholder="パスワード" />
+            <p class="register-worker_box_input_content">
+              ※半角入力、アルファベット、数字を6文字以上で作成して下さい。
+            </p>
+            <input
+              v-model="password"
+              type="password"
+              name="パスワード"
+              required
+              placeholder="パスワード"
+            />
             <div class="error">{{ errors[0] }}</div>
           </validation-provider>
           <br />
-          <button @click="register()" class="register-worker_btn"
-            :disabled="ObserverProps.invalid || !ObserverProps.validated">新規登録</button>
+          <button
+            @click="register()"
+            class="register-worker_btn"
+            :disabled="ObserverProps.invalid || !ObserverProps.validated"
+          >
+            新規登録
+          </button>
         </validation-observer>
       </div>
     </div>
   </div>
 </template>
 
+<script>
+import firebase from "~/plugins/firebase";
+export default {
+  data() {
+    return {
+      name: null,
+      email: null,
+      password: null,
+      uid: null,
+    };
+  },
+  methods: {
+    // workerとして登録
+    async register() {
+      if (!this.email || !this.password) {
+        alert("メールアドレスまたはパスワードが入力されていません。");
+      }
+      // まずはfirebaseに登録。この時点ではclientとworker区別なし。
+      await firebase
+        .auth()
+        .createUserWithEmailAndPassword(this.email, this.password)
+        .then((data) => {
+          this.uid = data.user.uid;
+          data.user.sendEmailVerification();
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("メールアドレスの形式が違います。");
+              break;
+            case "auth/email-already-in-use":
+              alert("このメールアドレスはすでに使われています。");
+              break;
+            case "auth/weak-password":
+              alert("パスワードは6文字以上で入力してください。");
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
+        });
+      // 情報が足りない場合の対処
+      if (!this.name || !this.email || !this.password || !this.uid) {
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+        this.$router.replace("/register-worker");
+      } else {
+        // workerテーブルにfirebaseの登録情報を送信
+        const newClientData = {
+          name: this.name,
+          email: this.email,
+          password: this.password,
+          uid: this.uid,
+        };
+        await this.$axios.post(
+          "http://127.0.0.1:8000/api/v1/worker",
+          newClientData
+        );
+        // firebaseへのログインしてページ遷移
+        const userData = {
+          email: this.email,
+          password: this.password,
+        };
+        this.$store.dispatch("login", userData);
+        this.$router.replace("/thanks-register-account");
+      }
+    },
+  },
+};
+</script>
+
 <style>
-.register-worker{
+.register-worker {
   display: flex;
   justify-content: center;
 }
-.register-worker_box{
+.register-worker_box {
   width: 400px;
   height: auto;
   text-align: center;
@@ -57,29 +161,28 @@
   border-radius: 10px;
   padding: 50px;
 }
-.register-worker_box_ttl{
+.register-worker_box_ttl {
   font-size: 30px;
 }
-.register-worker_box_content{
+.register-worker_box_content {
   margin-top: 10px;
   font-size: 12px;
 }
-.register-worker_box_input_ttl{
+.register-worker_box_input_ttl {
   font-size: 20px;
   font-weight: bold;
 }
-.register-worker_box_input_content{
-  
+.register-worker_box_input_content {
   font-size: 12px;
 }
-.register-worker_box input{
+.register-worker_box input {
   margin: 0 10px 10px 10px;
   width: 400px;
   height: 30px;
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
 }
-.register-worker_btn{
+.register-worker_btn {
   margin: 20px;
   width: 100px;
   border-radius: 10px;

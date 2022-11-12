@@ -15,12 +15,21 @@
           <p class="login_box_content">※チャットIDとチャットパスワードのみではログインできません。ご自身のアカウントを新規作成してからログインして下さい。</p>
           <br />
           <p class="login_box_input_ttl">メールアドレス</p>
-          <input v-model="email" type="email" required placeholder="メールアドレス" />
-          <br />
-          <p class="login_box_input_ttl">パスワード</p>
-          <input v-model="password" type="password" required placeholder="パスワード" />
-          <br />
-          <button @click="login()" class="login__btn">ログイン</button>
+          <validation-observer ref="obs" v-slot="ObserverProps">
+            <validation-provider v-slot="{ errors }" rules="required|email|max:256">
+              <input v-model="email" type="email" name="メールアドレス" required placeholder="メールアドレス" />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <br />
+            <p class="login_box_input_ttl">パスワード</p>
+            <validation-provider v-slot="{ errors }" rules="required|min:6|max:256|alpha_dash">
+              <input v-model="password" type="password" name="パスワード" required placeholder="パスワード" />
+              <br />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <button @click="login()" class="login__btn" 
+            :disabled="ObserverProps.invalid || !ObserverProps.validated">ログイン</button>
+          </validation-observer>
         </div>
       </div>
       <div class="register">
@@ -40,6 +49,25 @@
 </template>
 
 <script>
+export default {
+  data() {
+    return {
+      email: null,
+      password: null,
+    }
+  },
+  methods: {
+    // firebaseにログイン情報を送信するためにstore/index.jsのVuexにthis.$store.dispatch()で情報送信
+    async login() {
+      const userData = {
+        email: this.email,
+        password: this.password,
+      }
+      await this.$store.dispatch('login', userData);
+      this.$router.replace('/patient-index');
+    },
+  }
+}
 </script>
 
 <style>

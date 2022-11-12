@@ -1,6 +1,6 @@
 <template>
   <div>
-    <HeaderOut></HeaderOut>
+    <HeaderIn></HeaderIn>
     <div class="thanks">
       <div class="thanks_box">
         <h3 class="thanks_box_ttl">アカウントの登録が完了しました。</h3>
@@ -13,6 +13,15 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  created() {
+    // firebaseのログインチェック
+    this.$store.dispatch('onAuth')
+  }
+}
+</script>
 
 <style>
 .thanks{

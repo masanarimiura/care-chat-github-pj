@@ -2,6 +2,7 @@
   <div>
     <HeaderIn></HeaderIn>
     <div class="login-register_ttl">
+      <p>patient_id:{{ this.$route.query.patient_id }}</p>
       <p>チャットID:</p>
       <h2>「◯◯◯◯」</h2>
     </div>
@@ -35,6 +36,8 @@
     </div>
   </div>
 </template>
+
+
 
 <style>
 .login-register_ttl {
