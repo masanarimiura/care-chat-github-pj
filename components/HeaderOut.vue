@@ -17,6 +17,17 @@
 </template>
 
 <script>
+import firebase from '~/plugins/firebase'
+export default {
+  methods: {
+    loginId() {
+      console.log(this.$store.state.loginUserId)
+      console.log(this.$store.state.userUid)
+      console.log(this.$store.state.loggedIn)
+      console.log(this.$store.state.clientOrWorker)
+      }
+  }
+}
 </script>
 
 <style>

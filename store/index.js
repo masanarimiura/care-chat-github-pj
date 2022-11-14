@@ -33,8 +33,8 @@ export const mutations = {
   logout(state) {
     state.loginUserId = '';
     state.userUid = '';
-    loggedIn = false;
-    clientOrWorker = '';
+    state.loggedIn = false;
+    state.clientOrWorker = '';
   },
 };
 
@@ -43,36 +43,6 @@ export const actions = {
   async login( {commit},{email,password} ) {
     await firebase.auth()
     .signInWithEmailAndPassword(email, password)
-    .then((result) => {
-      const user = result.user
-      // Vuexに「ログインid」「ログイン状態をtrue」と「firebaseのログインアカウントのuid」を保管しておく。
-      commit('sendLoginUserId', user.id)
-      commit('loginStateChange', true)
-      commit('setUserUid', user.uid)
-      // Vuexにログインアカウントが「client_id」か「worker_id」かを見分ける情報をを保管しておく。
-      const searchUid = {
-        uid: user.uid
-      }
-      this.$axios.get("http://127.0.0.1:8000/api/v1/client", { params: searchUid })
-        .then((result) => {
-          this.id = result.data.data.id;
-          const userId = {
-            id: this.id
-          };
-          commit('sendLoginUserId', userId.id)
-          commit('clientLogin')
-        })
-      this.$axios
-        .get("http://127.0.0.1:8000/api/v1/worker", { params: searchUid })
-        .then((result) => {
-          this.id = result.data.data.id;
-          const userId = {
-            id: this.id
-          };
-          commit('sendLoginUserId', userId.id)
-          commit('workerLogin')
-        })
-    })
     .catch((error) => {
       // firebaseのログインに失敗した時の対応。とりあえずアラートで簡単に作ってるけど、エラーページに飛ぶ方がいいか？余裕があったら作る。
       const errorCode = error.code
@@ -94,22 +64,26 @@ export const actions = {
           }
           this.$axios.get("http://127.0.0.1:8000/api/v1/client", { params: searchUid })
           .then((result) => {
-            this.id = result.data.data.id;
-          const userId = {
-            id: this.id
-          };
-          commit('sendLoginUserId', userId.id)
-          commit('clientLogin')
+            if (result.data.data != undefined) {
+              this.id = result.data.data.id;
+              const userId = {
+              id: this.id
+              }; 
+              commit('sendLoginUserId', userId.id)
+              commit('clientLogin')
+            } 
           })
           this.$axios
           .get("http://127.0.0.1:8000/api/v1/worker", { params: searchUid })
           .then((result) => {
-          this.id = result.data.data.id;
-          const userId = {
-            id: this.id
-          };
-          commit('sendLoginUserId', userId.id)
-          commit('workerLogin')
+            if (result.data.data != undefined) {
+              this.id = result.data.data.id;
+              const userId = {
+                id: this.id
+              };
+              commit('sendLoginUserId', userId.id)
+              commit('workerLogin')
+            }
           })
         } else {
           this.$router.replace('/').then(() => {

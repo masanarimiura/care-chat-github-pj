@@ -3,35 +3,61 @@
     <HeaderIn></HeaderIn>
     <div class="patient-join-make_ttl">
       <h2>患者チャット</h2>
-      <p>※チャットIDの分かる方は「チャットに参加」へ。初めてご利用される場合は「チャット作成」をお願いします。</p>
+      <p>
+        ※チャットIDの分かる方は「チャットに参加」へ。初めてご利用される場合は「チャット作成」をお願いします。
+      </p>
     </div>
     <div class="patient-join-record">
       <h3>過去に参加したチャットに参加</h3>
       <ul>
-        <li v-for="patient in patientsData" :key="patient.name">{{patient.patient.name}}</li>
+        <li v-for="patient in patientsData" :key="patient.name">
+          {{ patient.patient.name }}
+        </li>
       </ul>
     </div>
     <div class="patient-join-make">
       <div class="patient-join">
         <div class="patient-join_box">
           <h3 class="patient-join_box_ttl">チャットに参加</h3>
-          <p class="patient-join_box_content">※チャットIDが分かる方はこちらからログインして下さい。</p>
+          <p class="patient-join_box_content">
+            ※チャットIDが分かる方はこちらからログインして下さい。
+          </p>
           <br />
           <p class="patient-join_box_input_ttl">チャットID</p>
           <validation-observer ref="obs" v-slot="ObserverProps">
             <validation-provider v-slot="{ errors }" rules="required|max:100">
-              <input v-model="name" type="text" name="チャットID" required placeholder="チャットID"/>
-              <div class="error">{{ errors[0] }}</div>
-            </validation-provider>
-              <br />
-              <p class="patient-join_box_input_ttl">チャットパスワード</p>
-            <validation-provider v-slot="{ errors }" rules="required|min:6|max:256">
-              <input v-model="password" type="password" name="チャットパスワード" required placeholder="チャットパスワード"/>
+              <input
+                v-model="name"
+                type="text"
+                name="チャットID"
+                required
+                placeholder="チャットID"
+              />
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
             <br />
-            <button @click="join()" class="patient-join__btn" 
-            :disabled="ObserverProps.invalid || !ObserverProps.validated">ログイン</button>
+            <p class="patient-join_box_input_ttl">チャットパスワード</p>
+            <validation-provider
+              v-slot="{ errors }"
+              rules="required|min:6|max:256"
+            >
+              <input
+                v-model="password"
+                type="password"
+                name="チャットパスワード"
+                required
+                placeholder="チャットパスワード"
+              />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <br />
+            <button
+              @click="join()"
+              class="patient-join__btn"
+              :disabled="ObserverProps.invalid || !ObserverProps.validated"
+            >
+              ログイン
+            </button>
           </validation-observer>
         </div>
       </div>
@@ -39,8 +65,12 @@
         <div class="patient-make_box">
           <h3 class="patient-make_box_ttl">チャットの新規作成</h3>
           <br />
-          <NuxtLink to="/patient-make" class="nuxt-link">患者チャット新規作成ページへ</NuxtLink>
-          <p class="patient-make_box_content">※既にチャットIDを作成済みの方は作成者と「チャットID」「パスワード」を共有し、「チャットに参加」を利用して下さい。</p>
+          <NuxtLink to="/patient-make" class="nuxt-link"
+            >患者チャット新規作成ページへ</NuxtLink
+          >
+          <p class="patient-make_box_content">
+            ※既にチャットIDを作成済みの方は作成者と「チャットID」「パスワード」を共有し、「チャットに参加」を利用して下さい。
+          </p>
         </div>
       </div>
     </div>
@@ -54,7 +84,7 @@ export default {
       name: null,
       password: null,
       patientsData: {},
-    }
+    };
   },
   methods: {
     async join() {
@@ -62,53 +92,89 @@ export default {
       const patientNamePass = {
         name: this.name,
         password: this.password,
-      }
-      const getPatientId = await this.$axios.get("http://127.0.0.1:8000/api/v1/patient-search", { params: patientNamePass});
+      };
+      const getPatientId = await this.$axios.get(
+        "http://127.0.0.1:8000/api/v1/patient-search",
+        { params: patientNamePass }
+      );
       this.patient_id = getPatientId.data.data.id;
       // ログインアカウントがclient か workerかを判別する。
-      if (this.$store.state.clientOrWorker == 'client') {
+      if (this.$store.state.clientOrWorker == "client") {
         // clientの場合、まずclient-patientsテーブルに患者チャット参加の履歴があるか確認。
         const clientIdPatientId = {
-        client_id: this.$store.state.loginUserId,
-        patient_id:  this.patient_id
-        }
-        const checkClientPatientRecord = await this.$axios.get("http://127.0.0.1:8000/api/v1/client-patient-check", { params: clientIdPatientId});
+          client_id: this.$store.state.loginUserId,
+          patient_id: this.patient_id,
+        };
+        const checkClientPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/client-patient-check",
+          { params: clientIdPatientId }
+        );
         if (checkClientPatientRecord.data.data.length == 0) {
           // 履歴が無い場合、中間のclient-patientsテーブルに患者チャット参加の履歴をclient_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post("http://127.0.0.1:8000/api/v1/client-patient", clientIdPatientId);
-        }  
-      } else if (this.$store.state.clientOrWorker == 'worker') {
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/client-patient",
+            clientIdPatientId
+          );
+        }
+      } else if (this.$store.state.clientOrWorker == "worker") {
         // workerの場合、まずworker-patientsテーブルに患者チャット参加の履歴があるか確認。
         const workerIdPatientId = {
-        worker_id: this.$store.state.loginUserId,
-        patient_id:  this.patient_id
-        }
-        const checkWorkerPatientRecord = await this.$axios.get("http://127.0.0.1:8000/api/v1/worker-patient-check", { params: workerIdPatientId});
+          worker_id: this.$store.state.loginUserId,
+          patient_id: this.patient_id,
+        };
+        const checkWorkerPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/worker-patient-check",
+          { params: workerIdPatientId }
+        );
         if (checkWorkerPatientRecord.data.data.length == 0) {
           // 履歴が無い場合、中間のworker-patientsテーブルに患者チャット参加の履歴をworker_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post("http://127.0.0.1:8000/api/v1/worker-patient", workerIdPatientId);
-        }  
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/worker-patient",
+            workerIdPatientId
+          );
+        }
       }
       // 次のページにpatient_idをクエリでchatページに渡してpatientの情報を表示するのに使う。
-      this.$router.push({ path: 'patient-chat' , query :{ patient_id: this.patient_id }});
+      this.$router.push({
+        path: "patient-chat",
+        query: { patient_id: this.patient_id },
+      });
     },
     async getRecord() {
-      // Vuexのログイン id から患者チャットの履歴 client-patients or worker-patients テーブル を引き出す。
-      if (this.$store.state.clientOrWorker == 'client') {
+      // Vuexのログインid変更の検知から患者チャットの履歴 client-patients or worker-patientsテーブル を引き出す。
+      if (this.$store.state.clientOrWorker == "client") {
         const clientId = {
-        client_id: this.$store.state.loginUserId,
-        }
-        const getClientPatientRecord = await this.$axios.get("http://127.0.0.1:8000/api/v1/client-patient-search", { params: clientId});
+          client_id: this.$store.state.loginUserId,
+        };
+        const getClientPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/client-patient-search",
+          { params: clientId }
+        );
         this.patientsData = getClientPatientRecord.data.data;
-      } else if (this.$store.state.clientOrWorker == 'worker') {
+      } else if (this.$store.state.clientOrWorker == "worker") {
+        const workerId = {
+          worker_id: this.$store.state.loginUserId,
+        };
+        const getWorkerPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/worker-patient-search",
+          { params: workerId }
+        );
+        this.patientsData = getWorkerPatientRecord.data.data;
       }
     },
   },
   async created() {
-    await this.$store.dispatch('onAuth')
-    await this.getRecord()
-  }
-}
+    await this.$store.dispatch("onAuth");
+  },
+  mounted() {
+    // Vuexのログインid変更を検知して、client-patients or worker-patients テーブルで参加履歴を検索するgetRecord()を起動する。
+    this.$store.subscribe((mutation) => {
+      if (mutation.type === "clientLogin" || mutation.type === "workerLogin") {
+        this.getRecord();
+      }
+    });
+  },
+};
 </script>
 
 <style>
@@ -131,10 +197,6 @@ export default {
   height: auto;
   text-align: center;
 }
-
-
-
-
 .patient-join-record {
   margin: 30px 100px;
   height: auto;
@@ -162,21 +224,20 @@ export default {
   color: #a80000;
   cursor: pointer;
 }
-
-
-
-.patient-join-make{
+.patient-join-make {
   margin: 10px 50px 0 50px;
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
 }
-.patient-join,.patient-make{
+.patient-join,
+.patient-make {
   margin: 20px;
   display: flex;
   justify-content: center;
 }
-.patient-join_box,.patient-make_box{
+.patient-join_box,
+.patient-make_box {
   width: 400px;
   height: auto;
   text-align: center;
@@ -185,17 +246,19 @@ export default {
   border-radius: 10px;
   padding: 50px;
 }
-.patient-join_box_ttl,.patient-make_box_ttl{
+.patient-join_box_ttl,
+.patient-make_box_ttl {
   font-size: 30px;
 }
-.patient-make_box_content,.patient-join_box_content{
+.patient-make_box_content,
+.patient-join_box_content {
   margin-top: 10px;
   font-size: 12px;
 }
-.patient-join_box_input_ttl{
+.patient-join_box_input_ttl {
   font-size: 20px;
 }
-.patient-join_box input{
+.patient-join_box input {
   margin: 10px;
   width: 400px;
   height: 30px;
@@ -213,7 +276,7 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
-.patient-make_box{
+.patient-make_box {
   background-color: rgb(211, 252, 237);
 }
 .patient-make_box .nuxt-link {
