@@ -1,12 +1,10 @@
 <template>
   <div>
-    <HeaderIn></HeaderIn>
+    <HeaderOut></HeaderOut>
     <div class="thanks">
       <div class="thanks_box">
-        <h3 class="thanks_box_ttl">アカウント内容の登録が完了しました。</h3>
-        <p class="thanks_box_content">続けて、
-          <NuxtLink to="/patient-index">患者チャットへの参加もしくは新規作成</NuxtLink>
-          へお進み下さい。</p>
+        <h3 class="thanks_box_ttl">確認用メールを送信しました</h3>
+        <p class="thanks_box_content">ご自身のメールをご確認頂き、URLをクリックして下さい。</p>
       </div>
     </div>
   </div>

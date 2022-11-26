@@ -5,13 +5,11 @@
       <div class="thanks_box">
         <h3 class="thanks_box_ttl">ご登録が完了しました。</h3>
         <p class="thanks_box_content">チャットID:</p>
-        <p class="thanks_box_content_name">{{ this.$route.query.name }}</p>
+        <p class="thanks_box_content_name">{{ this.patientName }}</p>
         <p class="thanks_box_content">チャットパスワード:</p>
-        <p class="thanks_box_content_name">{{ this.$route.query.password }}</p>
+        <p class="thanks_box_content_name">{{ this.patientPassword }}</p>
         <p class="thanks_box_content">上記の内容を一緒にご利用されたい方への共有をお願いします。</p>
-        <br />
-        <p class="thanks_box_btn" @click="join()">こちらより「{{ this.$route.query.name }}」患者チャットへ参加して下さい</p>
-        <br />
+        <p class="thanks_box_btn" @click="join()">こちらより「{{ this.patientName }}」患者チャットへ参加して下さい</p>
       </div>
     </div>
   </div>
@@ -21,21 +19,25 @@
 export default {
   data() {
     return {
-      patient_id: "",
-      name: "",
-      password: "",
+      patientId: "",
+      patientName: "",
+      patientPassword: "",
     };
   },
   methods: {
-    // 患者チャットに patient_id をパラメータで持たせて遷移。次のページで2つのcommentsテーブルから検索
     async join() {
-      this.patient_id = this.$route.query.patient_id,
-      this.$router.push({ path: 'patient-chat' , query :{ patient_id: this.patient_id }});
+      this.$router.replace('patient-chat');
     },
   },
-  created() {
+  async created() {
     // firebaseのログインチェック
     this.$store.dispatch('onAuth')
+    // patient_id からpatientの情報を検索
+    this.patientId = this.$store.state.joinedPatientId;
+    const getPatientInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/patient/" + this.patientId);
+    console.log(getPatientInfo)
+    this.patientName = getPatientInfo.data.data.name;
+    this.patientPassword = getPatientInfo.data.data.password;
   }
 }
 </script>

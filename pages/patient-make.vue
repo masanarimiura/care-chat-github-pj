@@ -3,28 +3,75 @@
     <HeaderIn></HeaderIn>
     <div class="patient-make">
       <div class="patient-make_box">
-        <h3 class="patient-make_box_ttl">患者チャット新規作成</h3>
-        <p class="patient-make_box_content">※既に作成済みのチャットに参加を希望する場合は作成者と「チャットID」「パスワード」を共有し、<NuxtLink to="/patient">「チャットに参加」</NuxtLink>を利用して下さい。</p>
-        <br />
-        <validation-observer ref="obs" v-slot="ObserverProps">
-          <validation-provider v-slot="{ errors }" rules="required|max:100">
-            <p class="patient-make_box_input_ttl">チャットID</p>
-            <p class="patient-make_box_input_content">※患者様のお名前などで自由に作成して下さい。</p>
-            <p class="patient-make_box_input_content">※20字以内の入力をお願いします。</p>
-            <input v-model="name" type="text" name="チャットID" required placeholder="チャットID" />
-            <div class="error">{{ errors[0] }}</div>
-          </validation-provider>
-          <br />
-          <validation-provider v-slot="{ errors }" vid="passwordConfirm" rules="required|min:6|max:256">
-            <p class="patient-make_box_input_ttl">チャットパスワード</p>
-            <p class="patient-make_box_input_content">※半角入力、アルファベット、数字を6文字以上で作成して下さい。</p>
-            <input v-model="password" type="text" name="チャットパスワード" required placeholder="チャットパスワード" />
-            <div class="error">{{ errors[0] }}</div>
-          </validation-provider>
-          <br />
-          <button @click="make()" class="patient-make_btn"
-            :disabled="ObserverProps.invalid || !ObserverProps.validated">新規登録</button>
-        </validation-observer>
+        <h3 class="patient-make_box_ttl">ケアチャット新規作成</h3>
+        <p class="patient-make_box_content">
+          ※既に作成済みのチャットに参加を希望する場合は作成者と「チャットID」「パスワード」を共有し、<NuxtLink
+            to="/patient-index"
+            >「チャットに参加」</NuxtLink
+          >を利用して下さい。
+        </p>
+        <div class="form">
+          <validation-observer ref="obs" v-slot="ObserverProps">
+            <validation-provider v-slot="{ errors }" rules="required|max:100">
+              <p class="patient-make_box_input_ttl">チャットID</p>
+              <p class="patient-make_box_input_content">
+                ※患者様のお名前などで自由に作成して下さい。
+              </p>
+              <p class="patient-make_box_input_content">
+                ※20字以内の入力をお願いします。
+              </p>
+              <input
+                v-model="name"
+                type="text"
+                name="チャットID"
+                required
+                placeholder="チャットID"
+              />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <validation-provider
+              v-slot="{ errors }"
+              vid="password"
+              rules="required|min:6|max:256|alpha_dash"
+            >
+              <p class="patient-make_box_input_ttl">チャットパスワード</p>
+              <p class="patient-make_box_input_content">
+                ※半角入力、アルファベット、数字を6文字以上で作成して下さい。
+              </p>
+              <input
+                v-model="password"
+                type="password"
+                name="チャットパスワード"
+                required
+                placeholder="チャットパスワード"
+              />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <validation-provider
+              v-slot="{ errors }"
+              rules="required|confirmed:password"
+            >
+              <p class="patient-make_box_input_ttl">チャットパスワード再確認</p>
+              <p class="patient-make_box_input_content">
+                ※上記と同じ内容を入力して下さい。
+              </p>
+              <input
+                v-model="confirmation"
+                type="password"
+                name="チャットパスワード再確認"
+                placeholder="チャットパスワード再確認"
+              />
+              <div class="error">{{ errors[0] }}</div>
+            </validation-provider>
+            <button
+              @click="make()"
+              class="patient-make_btn"
+              :disabled="ObserverProps.invalid || !ObserverProps.validated"
+            >
+              新規登録
+            </button>
+          </validation-observer>
+        </div>
       </div>
     </div>
   </div>
@@ -36,6 +83,7 @@ export default {
     return {
       name: "",
       password: "",
+      confirmation: "",
       newPatientId: "",
     };
   },
@@ -47,43 +95,50 @@ export default {
         name: this.name,
         password: this.password,
       };
-      await this.$axios.post("http://127.0.0.1:8000/api/v1/patient", newPatientNamePass);
+      await this.$axios.post(
+        "http://127.0.0.1:8000/api/v1/patient",
+        newPatientNamePass
+      );
       // patients テーブルで作成されたデータの id を検索して patient_idを見つける。
-      const getNewPatientId = await this.$axios.post("http://127.0.0.1:8000/api/v1/patient-search", newPatientNamePass);
+      const getNewPatientId = await this.$axios.get(
+        "http://127.0.0.1:8000/api/v1/patient-search",
+        { params: newPatientNamePass }
+      );
       this.newPatientId = getNewPatientId.data.data.id;
-      // ログインアカウントがclient か workerかを判別する。
-      if (this.$store.state.clientOrWorker == 'client') {
-        // clientの場合、中間のclient-patientsテーブルに患者チャット作成者のclient_idと作ったpatient_idを記録。
+      // ログインアカウントがclient か workerかを判別して、それぞれの中間テーブルに履歴を記録
+      if (this.$store.state.clientOrWorker == "client") {
         const clientIdAndPatientId = {
-        client_id: this.$store.state.loginUserId,
-        patient_id: this.newPatientId,
+          client_id: this.$store.state.loginUserId,
+          patient_id: this.newPatientId,
         };
-        await this.$axios.post("http://127.0.0.1:8000/api/v1/client-patient", clientIdAndPatientId);
-      } else if (this.$store.state.clientOrWorker == 'worker') {
-        // workerの場合、中間のworker-patientsテーブルに患者チャット作成者のworker_idと作ったpatient_idを記録。
+        await this.$axios.post(
+          "http://127.0.0.1:8000/api/v1/client-patient",
+          clientIdAndPatientId
+        );
+      } else if (this.$store.state.clientOrWorker == "worker") {
         const workerIdAndPatientId = {
-        worker_id: this.$store.state.loginUserId,
-        patient_id: this.newPatientId,
+          worker_id: this.$store.state.loginUserId,
+          patient_id: this.newPatientId,
         };
-        await this.$axios.post("http://127.0.0.1:8000/api/v1/worker-patient", workerIdAndPatientId);
+        await this.$axios.post(
+          "http://127.0.0.1:8000/api/v1/worker-patient",
+          workerIdAndPatientId
+        );
       }
-      // サンクスページで名前とパスワードを表示するために、「patient_id」「名前」「パスワード」をクエリで送る。
-      this.$router.push({ path: 'thanks-make-patient' , query :{ patient_id: this.newPatientId,name: this.name, password: this.password }});
+      // patient_idをVuex.storeで保持
+      await this.$store.commit("SetJoinPatientId", this.newPatientId);
+      this.$router.replace("thanks-make-patient");
     },
   },
-  created() {
-    // firebaseのログインチェック
-    this.$store.dispatch('onAuth')
-  }
-}
+};
 </script>
 
 <style>
-.patient-make{
+.patient-make {
   display: flex;
   justify-content: center;
 }
-.patient-make_box{
+.patient-make_box {
   width: 400px;
   height: auto;
   text-align: center;
@@ -92,29 +147,32 @@ export default {
   border-radius: 10px;
   padding: 50px;
 }
-.patient-make_box_ttl{
+.patient-make_box_ttl {
   font-size: 30px;
 }
-.patient-make_box_content{
+.patient-make_box_content {
   margin-top: 10px;
   font-size: 12px;
 }
-.patient-make_box_input_ttl{
+.patient-make_box .form{
+  margin-top: 20px;
+  text-align:center;
+}
+.patient-make_box_input_ttl {
+  margin-top: 20px;
   font-size: 20px;
   font-weight: bold;
 }
-.patient-make_box_input_content{
-  
+.patient-make_box_input_content {
   font-size: 12px;
 }
-.patient-make_box input{
-  margin: 0 10px 10px 10px;
+.patient-make_box input {
   width: 400px;
   height: 30px;
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
 }
-.patient-make_btn{
+.patient-make_btn {
   margin: 20px;
   width: 100px;
   border-radius: 10px;

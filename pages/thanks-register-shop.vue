@@ -3,10 +3,10 @@
     <HeaderIn></HeaderIn>
     <div class="thanks">
       <div class="thanks_box">
-        <h3 class="thanks_box_ttl">アカウント内容の登録が完了しました。</h3>
-        <p class="thanks_box_content">続けて、
-          <NuxtLink to="/patient-index">患者チャットへの参加もしくは新規作成</NuxtLink>
-          へお進み下さい。</p>
+        <h3 class="thanks_box_ttl">事業所情報の登録が完了しました。</h3>
+        <p class="thanks_box_content">
+          <NuxtLink to="/my-page">マイページにて</NuxtLink>
+          ご確認ををお願いします</p>
       </div>
     </div>
   </div>

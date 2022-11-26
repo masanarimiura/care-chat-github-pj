@@ -2,7 +2,7 @@
   <div>
     <HeaderIn></HeaderIn>
     <div class="patient-join-make_ttl">
-      <h2>患者チャット</h2>
+      <h2>ケアチャット</h2>
       <p>
         ※チャットIDの分かる方は「チャットに参加」へ。初めてご利用される場合は「チャット作成」をお願いします。
       </p>
@@ -10,8 +10,10 @@
     <div class="patient-join-record">
       <h3>過去に参加したチャットに参加</h3>
       <ul>
-        <li v-for="patient in patientsData" :key="patient.name">
-          {{ patient.patient.name }}
+        <li v-for="patient in patientsData" :key="patient.patient.name">
+          <p @click="joinRecord(patient.patient.id)">
+            {{ patient.patient.name }}
+          </p>
         </li>
       </ul>
     </div>
@@ -52,7 +54,7 @@
             </validation-provider>
             <br />
             <button
-              @click="join()"
+              @click="joinIdPass()"
               class="patient-join__btn"
               :disabled="ObserverProps.invalid || !ObserverProps.validated"
             >
@@ -66,7 +68,7 @@
           <h3 class="patient-make_box_ttl">チャットの新規作成</h3>
           <br />
           <NuxtLink to="/patient-make" class="nuxt-link"
-            >患者チャット新規作成ページへ</NuxtLink
+            >ケアチャット新規作成ページへ</NuxtLink
           >
           <p class="patient-make_box_content">
             ※既にチャットIDを作成済みの方は作成者と「チャットID」「パスワード」を共有し、「チャットに参加」を利用して下さい。
@@ -83,63 +85,11 @@ export default {
     return {
       name: null,
       password: null,
+      patientId: null,
       patientsData: {},
     };
   },
   methods: {
-    async join() {
-      // ここでpatientのnameとpasswordを使ってidを取得、
-      const patientNamePass = {
-        name: this.name,
-        password: this.password,
-      };
-      const getPatientId = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/patient-search",
-        { params: patientNamePass }
-      );
-      this.patient_id = getPatientId.data.data.id;
-      // ログインアカウントがclient か workerかを判別する。
-      if (this.$store.state.clientOrWorker == "client") {
-        // clientの場合、まずclient-patientsテーブルに患者チャット参加の履歴があるか確認。
-        const clientIdPatientId = {
-          client_id: this.$store.state.loginUserId,
-          patient_id: this.patient_id,
-        };
-        const checkClientPatientRecord = await this.$axios.get(
-          "http://127.0.0.1:8000/api/v1/client-patient-check",
-          { params: clientIdPatientId }
-        );
-        if (checkClientPatientRecord.data.data.length == 0) {
-          // 履歴が無い場合、中間のclient-patientsテーブルに患者チャット参加の履歴をclient_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/client-patient",
-            clientIdPatientId
-          );
-        }
-      } else if (this.$store.state.clientOrWorker == "worker") {
-        // workerの場合、まずworker-patientsテーブルに患者チャット参加の履歴があるか確認。
-        const workerIdPatientId = {
-          worker_id: this.$store.state.loginUserId,
-          patient_id: this.patient_id,
-        };
-        const checkWorkerPatientRecord = await this.$axios.get(
-          "http://127.0.0.1:8000/api/v1/worker-patient-check",
-          { params: workerIdPatientId }
-        );
-        if (checkWorkerPatientRecord.data.data.length == 0) {
-          // 履歴が無い場合、中間のworker-patientsテーブルに患者チャット参加の履歴をworker_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/worker-patient",
-            workerIdPatientId
-          );
-        }
-      }
-      // 次のページにpatient_idをクエリでchatページに渡してpatientの情報を表示するのに使う。
-      this.$router.push({
-        path: "patient-chat",
-        query: { patient_id: this.patient_id },
-      });
-    },
     async getRecord() {
       // Vuexのログインid変更の検知から患者チャットの履歴 client-patients or worker-patientsテーブル を引き出す。
       if (this.$store.state.clientOrWorker == "client") {
@@ -162,12 +112,68 @@ export default {
         this.patientsData = getWorkerPatientRecord.data.data;
       }
     },
-  },
-  async created() {
-    await this.$store.dispatch("onAuth");
+    // 履歴をクリックするとそのpatientのページにアクセス
+    async joinRecord(recordedPatientId) {
+      // 次のページでpatient_idを利用するためvuexに保管する。
+      this.patientId = recordedPatientId;
+      this.$store.commit("SetJoinPatientId", this.patientId);
+      this.$router.replace("patient-chat");
+    },
+    // チャットIDとパスワードでjoinするとそのpatientのページにアクセス
+    async joinIdPass() {
+      // ここでpatientのnameとpasswordを使ってidを取得、
+      const patientNamePass = {
+        name: this.name,
+        password: this.password,
+      };
+      const getPatientId = await this.$axios.get(
+        "http://127.0.0.1:8000/api/v1/patient-search",
+        { params: patientNamePass }
+      );
+      this.patientId = getPatientId.data.data.id;
+      // 次のページでpatient_idを利用するためvuexに保管する。
+      this.$store.commit("SetJoinPatientId", this.patientId);
+      // ログインアカウントがclient or workerかを判別する。
+      if (this.$store.state.clientOrWorker == "client") {
+        // clientの場合、まずclient-patientsテーブルに患者チャット参加の履歴があるか確認。
+        const clientIdPatientId = {
+          client_id: this.$store.state.loginUserId,
+          patient_id: this.patientId,
+        };
+        const checkClientPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/client-patient-check",
+          { params: clientIdPatientId }
+        );
+        if (checkClientPatientRecord.data.data.length == 0) {
+          // 履歴が無い場合、中間のclient-patientsテーブルに患者チャット参加の履歴をclient_idと参加したpatient_idを記録。ある場合は無視。
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/client-patient",
+            clientIdPatientId
+          );
+        }
+      } else if (this.$store.state.clientOrWorker == "worker") {
+        // workerの場合、まずworker-patientsテーブルに患者チャット参加の履歴があるか確認。
+        const workerIdPatientId = {
+          worker_id: this.$store.state.loginUserId,
+          patient_id: this.patientId,
+        };
+        const checkWorkerPatientRecord = await this.$axios.get(
+          "http://127.0.0.1:8000/api/v1/worker-patient-check",
+          { params: workerIdPatientId }
+        );
+        if (checkWorkerPatientRecord.data.data.length == 0) {
+          // 履歴が無い場合、中間のworker-patientsテーブルに患者チャット参加の履歴をworker_idと参加したpatient_idを記録。ある場合は無視。
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/worker-patient",
+            workerIdPatientId
+          );
+        }
+      }
+      this.$router.replace("patient-chat");
+    },
   },
   mounted() {
-    // Vuexのログインid変更を検知して、client-patients or worker-patients テーブルで参加履歴を検索するgetRecord()を起動する。
+    // Vuexのログインid変更を検知して、client-patients or worker-patients テーブルで参加履歴を検索するgetRecord()を起動
     this.$store.subscribe((mutation) => {
       if (mutation.type === "clientLogin" || mutation.type === "workerLogin") {
         this.getRecord();
@@ -211,15 +217,22 @@ export default {
 }
 .patient-join-record ul {
   margin: 20px;
+  display: block;
+  text-align: center;
 }
 .patient-join-record ul li {
+  display: list-item;
   margin: 10px;
   list-style: none;
+  text-align: center;
+}
+.patient-join-record ul li p {
+  display: inline-block;
+  width: fit-content;
   font-size: 20px;
-  cursor: pointer;
   text-decoration: underline;
 }
-.patient-join-record ul li:hover {
+.patient-join-record ul li p:hover {
   background-color: transparent;
   color: #a80000;
   cursor: pointer;
