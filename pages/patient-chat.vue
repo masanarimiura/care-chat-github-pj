@@ -16,7 +16,6 @@ export default {
     },
   },
   mounted(){
-    console.log(this.$store.state.joinedPatientId)
     if(this.$store.state.joinedPatientId == ''){
       alert('チャットIDが読み取れませんでした。再度チャットへの参加をお願いします。')
       this.$router.replace('/patient-index')

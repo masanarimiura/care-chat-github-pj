@@ -1,5 +1,42 @@
 <template>
   <div>
+    <modal name="modal-update-icon" height="auto">
+      <div class="modal-header">
+        <h2>アイコンの変更</h2>
+      </div>
+      <div class="modal-body">
+        <div class="update-icon">
+          <input
+            type="file"
+            name="アイコン"
+            required
+            accept="image/jpg,image/jpeg,image/png,image/gif,image/tif,image/tiff,image/psd,image/svg"
+            @change="checkIcon"
+          />
+          <p v-if="this.overSizeIcon == true" class="error">
+            画像が10MBを超えています。10MB以下のみ使用可能です
+          </p>
+          <p v-if="this.exceptionIcon == true" class="error">
+            ファイル形式が読み取れません。jpg,jpeg,png,gif,tif,tiff,psd,svg
+            など他の形式をお試し下さい。
+          </p>
+          <button
+            v-if="this.errIconFile == false"
+            @click="updateIcon"
+            class="update-icon_btn"
+          >
+            アイコンを登録する
+          </button>
+          <button
+            v-if="this.errIconFile == true"
+            class="update-icon_btn-disable"
+          >
+            アイコンを登録する
+          </button>
+          <p v-on:click="hideIcon()" class="hide-btn">編集を中止する</p>
+        </div>
+      </div>
+    </modal>
     <modal name="modal-update-name" height="auto">
       <div class="modal-header">
         <h2>お名前の変更</h2>
@@ -36,9 +73,12 @@
       <div class="modal-body">
         <div class="update-email">
           <validation-observer ref="obs" v-slot="ObserverProps">
-            <validation-provider v-slot="{ errors }" rules="required|email|max:256|">
+            <validation-provider
+              v-slot="{ errors }"
+              rules="required|email|max:256|"
+            >
               <p>変更前のメールアドレス</p>
-              <p class="email">{{propsModal.workerEmail}}</p>
+              <p class="email">{{ propsModal.workerEmail }}</p>
               <p>変更後のメールアドレス</p>
               <input
                 v-model="newEmail"
@@ -76,7 +116,7 @@
       <div class="modal-body">
         <div class="update-number">
           <validation-observer ref="obs" v-slot="ObserverProps">
-            <validation-provider v-slot="{ errors }" rules="phone">
+            <validation-provider v-slot="{ errors }" rules="required|phone">
               <input
                 v-model="propsModal.workerPhoneNumber"
                 type="tel"
@@ -161,7 +201,11 @@
               <div id="app">
                 <div style="max-width: 400px; margin: 0 auto">
                   <p>下記より検索をご利用下さい。</p>
-                  <p class="update-shop_id_small-explain">※検索に存在しない場合は<NuxtLink to="/register-shop">「所属事業所の新規作成」</NuxtLink>して下さい。</p>
+                  <p class="update-shop_id_small-explain">
+                    ※検索に存在しない場合は<NuxtLink to="/register-shop"
+                      >「所属事業所の新規作成」</NuxtLink
+                    >して下さい。
+                  </p>
                   <FilterableDropdown
                     v-model="selectedValue"
                     :items="shops"
@@ -192,7 +236,7 @@
           </validation-observer>
           <NuxtLink to="/register-shop">
             <button class="store-shop_id_btn">
-            選択肢に無い事業所を新規作成
+              選択肢に無い事業所を新規作成
             </button>
           </NuxtLink>
           <p v-on:click="hideShopId()" class="hide-btn">編集を中止する</p>
@@ -202,14 +246,22 @@
     <modal name="modal-update-shop_info" height="auto">
       <div class="modal-header">
         <h2>事業所情報の編集</h2>
-        <p>※別な事業所を選択する場合は<span class="link" @click="showUpdateShop()">選択画面</span>に移動して下さい。</p>
+        <p>
+          ※別な事業所を選択する場合は<span
+            class="link"
+            @click="showUpdateShop()"
+            >選択画面</span
+          >に移動して下さい。
+        </p>
         <p>※選択肢に事業所が存在しない場合は新規作成が可能となります。</p>
       </div>
       <div class="modal-body">
         <div class="update-shop_info">
           <validation-observer ref="obs" v-slot="ObserverProps">
             <validation-provider v-slot="{ errors }" rules="required|max:100">
-              <p class="update-shop_box_input_ttl">事業所名:{{propsModal.workerInfo.shop.name}}</p>
+              <p class="update-shop_box_input_ttl">
+                事業所名:{{ propsModal.workerInfo.shop.name }}
+              </p>
               <p class="update-shop_box_input_content">
                 ※検索しやすいように病院名、法人名などは正確にご記入下さい。
               </p>
@@ -229,7 +281,9 @@
             >
               <div id="app">
                 <div style="max-width: 400px; margin: 0 auto">
-                  <p class="update-shop_box_input_ttl">事業所分類:{{propsModal.workerInfo.shop.shop_type.name}}</p>
+                  <p class="update-shop_box_input_ttl">
+                    事業所分類:{{ propsModal.workerInfo.shop.shop_type.name }}
+                  </p>
                   <FilterableDropdown
                     v-model="propsModal.workerInfo.shop.shop_type.id"
                     :items="shopTypes"
@@ -250,11 +304,13 @@
               </div>
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
-            <validation-provider
-              v-slot="{ errors }"
-              rules="email|max:256"
-            >
-              <p class="update-shop_box_input_ttl">メールアドレス:{{propsModal.workerInfo.shop.email}}<span v-if="propsModal.workerInfo.shop.email == null">未登録</span><span class="small">※任意</span></p>
+            <validation-provider v-slot="{ errors }" rules="email|max:256">
+              <p class="update-shop_box_input_ttl">
+                メールアドレス:{{ propsModal.workerInfo.shop.email
+                }}<span v-if="propsModal.workerInfo.shop.email == null"
+                  >未登録</span
+                ><span class="small">※任意</span>
+              </p>
               <input
                 v-model="propsModal.workerInfo.shop.email"
                 type="email"
@@ -263,8 +319,12 @@
               />
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
-            <validation-provider v-slot="{ errors }" rules="phone|">
-              <p class="update-shop_box_input_ttl">電話番号:{{propsModal.workerInfo.shop.number}}<span v-if="propsModal.workerInfo.shop.number == null">未登録</span>
+            <validation-provider v-slot="{ errors }" rules="phone">
+              <p class="update-shop_box_input_ttl">
+                電話番号:{{ propsModal.workerInfo.shop.number
+                }}<span v-if="propsModal.workerInfo.shop.number == null"
+                  >未登録</span
+                >
                 <span class="small">※任意</span>
               </p>
               <input
@@ -283,10 +343,7 @@
               編集した内容を登録
             </button>
           </validation-observer>
-          <button
-            @click="showUpdateShop()"
-            class="change-shop_info_btn"
-          >
+          <button @click="showUpdateShop()" class="change-shop_info_btn">
             事業所を再選択する
           </button>
           <p v-on:click="hideShopInfo()" class="hide-btn">編集を中止する</p>
@@ -297,7 +354,7 @@
 </template>
 
 <script>
-import firebase from '~/plugins/firebase'
+import firebase from "~/plugins/firebase";
 import FilterableDropdown from "./FilterableDropdown.vue";
 export default {
   components: {
@@ -305,23 +362,50 @@ export default {
   },
   data() {
     return {
-      value:null,
+      iconFile: "",
+      errIconFile: true,
+      overSizeIcon: false,
+      exceptionIcon: false,
+      value: null,
       selectedValue: null,
       shopTypes: [],
       shops: [],
-      newEmail:"",
-      password:"",
+      newEmail: "",
+      password: "",
     };
   },
   // WorkerMyPage.vueからデータの引き継ぎ
   props: ["propsModal"],
   methods: {
     // 所属事業所選択のためにshop の情報を取得
-    async getShopInfo(){
-      const getShopInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/shop");
+    async getShopInfo() {
+      const getShopInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/shop")
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       this.shops = getShopInfo.data.data;
     },
+    // 事業所分類選択のために shop_types の情報を取得
+    async getShopTypeInfo() {
+      const getShopTypeInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/shop_type")
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
+      this.shopTypes = getShopTypeInfo.data.data;
+    },
+    // モーダルを開く
+    showUpdateShop() {
+      this.hideShopInfo();
+      this.$modal.show("modal-update-shop_id");
+    },
     // モーダルを閉じる
+    hideIcon() {
+      this.$modal.hide("modal-update-icon");
+    },
     hideName() {
       this.$modal.hide("modal-update-name");
     },
@@ -340,6 +424,75 @@ export default {
     hideShopInfo() {
       this.$modal.hide("modal-update-shop_info");
     },
+    // アイコンの投稿のファイル選択時のバリデーション
+    checkIcon(p) {
+      this.iconFile = p.target.files[0];
+      const size = this.iconFile.size;
+      const type = this.iconFile.type;
+      // 10MBまででファイル形式は3種類のみ、違えばエラー表示と送信ボタンが使えない状態にする。
+      if (size > 10000000) {
+        this.errIconFile = true;
+        this.overSizeIcon = true;
+      }
+      if (
+        type != "image/jpg" &&
+        type != "image/jpeg" &&
+        type != "image/png" &&
+        type != "image/gif" &&
+        type != "image/tif" &&
+        type != "image/tiff" &&
+        type != "image/psd" &&
+        type != "image/svg"
+      ) {
+        this.errIconFile = true;
+        this.exceptionIcon = true;
+      }
+      if (size <= 10000000) {
+        this.overSizeIcon = false;
+        if (
+          type == "image/jpg" ||
+          type == "image/jpeg" ||
+          type == "image/png" ||
+          type == "image/gif" ||
+          type == "image/tif" ||
+          type == "image/tiff" ||
+          type == "image/psd" ||
+          type == "image/svg"
+        ) {
+          this.errIconFile = false;
+          this.exceptionIcon = false;
+        }
+      }
+    },
+    async updateIcon() {
+      // checkIconでエラーがない時のみ処理を行う
+      if (this.errIconFile == false) {
+        // ヘッダーでフォームデータを定義
+        const config = {
+          headers: { "content-type": "multipart/form-data" },
+        };
+        // Formデータ作成
+        const formData = new FormData();
+        formData.append("file", this.iconFile);
+        formData.append(
+          "worker_id",
+          JSON.stringify(this.$store.state.loginUserId)
+        );
+        await this.$axios
+          .post(
+            "http://127.0.0.1:8000/api/v1/worker-icon_update",
+            formData,
+            config
+          )
+          .catch(() => {
+            location.reload();
+            alert("エラーが起きました。しばらくしてから再度お試しください。");
+          });
+        location.reload();
+      } else {
+        location.reload();
+      }
+    },
     // workerの name number の更新
     async updateName() {
       const UpdateName = {
@@ -353,6 +506,20 @@ export default {
         )
         .then(() => {
           this.hideName();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
@@ -361,36 +528,42 @@ export default {
       await this.login();
       // firebaseでメールアドレスの変更
       const user = firebase.auth().currentUser;
-      user.updateEmail(this.newEmail)
-      .then(() => {
-        // firebaseのメールがupdateできたらデータベースも処理
-        this.updateEmailDb()
-      })
-      .catch((error) => {
-        switch (error.code) {
-        case 'auth/invalid-email':
-        alert('メールアドレスの形式が違います。')
-        break
-        case 'auth/user-disabled':
-        alert('ユーザーが無効になっています。')
-        break
-        case 'auth/user-not-found':
-        alert('ユーザーが存在しません。')
-        break
-        default:
-        alert('エラーが起きました。しばらくしてから再度お試しください。')
-        break
-        }
-      });
+      user
+        .updateEmail(this.newEmail)
+        .then(() => {
+          // firebaseのメールがupdateできたらデータベースも処理
+          this.updateEmailDb();
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("メールアドレスの形式が違います。");
+              break;
+            case "auth/user-disabled":
+              alert("ユーザーが無効になっています。");
+              break;
+            case "auth/user-not-found":
+              alert("ユーザーが存在しません。");
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
+        });
     },
     // firebase のメール変更のために再ログイン
     async login() {
-    await firebase.auth()
-    .signInWithEmailAndPassword(this.propsModal.workerEmail, this.password)
-    .catch((error) => {
-      const errorCode = error.code
-      alert('error : ' + errorCode + 'メールアドレスの変更に失敗しました。メールアドレスとパスワードをご確認の上、再度お試し下さい。')
-    });
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(this.propsModal.workerEmail, this.password)
+        .catch((error) => {
+          const errorCode = error.code;
+          alert(
+            "error : " +
+              errorCode +
+              "メールアドレスの変更に失敗しました。メールアドレスとパスワードをご確認の上、再度お試し下さい。"
+          );
+        });
     },
     // firebaseのメールがupdateできたら下の処理する
     async updateEmailDb() {
@@ -405,6 +578,20 @@ export default {
         )
         .then(() => {
           this.hideName();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
@@ -420,6 +607,20 @@ export default {
         )
         .then(() => {
           this.hideNumber();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
@@ -436,6 +637,10 @@ export default {
         )
         .then(() => {
           this.hideNumber();
+        })
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
         });
       location.reload();
     },
@@ -452,6 +657,20 @@ export default {
         )
         .then(() => {
           this.hideRoleId();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
@@ -468,14 +687,33 @@ export default {
         )
         .then(() => {
           this.hideRoleId();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
     // shops に事業所情報の更新
     async updateShopInfo() {
       // 情報が足りない場合の対処
-      if (!this.propsModal.workerInfo.shop.name || !this.propsModal.workerInfo.shop.shop_type.id) {
-        alert("エラーが起きました。入力項目に誤りがありました。内容をご確認の上、再度お試し下さい");
+      if (
+        !this.propsModal.workerInfo.shop.name ||
+        !this.propsModal.workerInfo.shop.shop_type.id
+      ) {
+        alert(
+          "エラーが起きました。入力項目に誤りがありました。内容をご確認の上、再度お試し下さい"
+        );
         this.$router.replace("/my-page");
       } else {
         // shops に登録情報を送信
@@ -485,35 +723,43 @@ export default {
           number: this.propsModal.workerInfo.shop.number,
           email: this.propsModal.workerInfo.shop.email,
         };
-        await this.$axios.put(
-          "http://127.0.0.1:8000/api/v1/shop/" + this.propsModal.workerInfo.shop.id,
-          updateShopInfo
-        ).then(() => {
-          this.hideShopInfo();
-        });
+        await this.$axios
+          .put(
+            "http://127.0.0.1:8000/api/v1/shop/" +
+              this.propsModal.workerInfo.shop.id,
+            updateShopInfo
+          )
+          .then(() => {
+            this.hideShopInfo();
+          })
+          .catch((error) => {
+            const Errors = error.response.data.errors;
+            for (let key in Errors) {
+              alert(
+                "エラーコード:" +
+                  error.response.data.status +
+                  " / エラー項目「" +
+                  key +
+                  "」\nエラー内容:" +
+                  Errors[key]
+              );
+            }
+            location.reload();
+          });
         location.reload();
       }
-    },
-    showUpdateShop() {
-      this.hideShopInfo();
-      this.$modal.show("modal-update-shop_id");
-    },
-    // 事業所分類選択のために shop_types の情報を取得
-    async getShopTypeInfo(){
-      const getShopTypeInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/shop_type");
-      this.shopTypes = getShopTypeInfo.data.data;
     },
   },
   created() {
     // shops から事業所情報を取得、modal-update-shop_idで検索で使用
     this.getShopInfo();
-    // vuex の clientOrWorker が worker かを確認してケアワーカーのみ作成可能にする。
-    if(this.$store.state.clientOrWorker != 'worker') {
-      alert('エラーが発生しました。アカウント情報に誤りがあります。')
-      this.$router.replace("my-page");
-    }
     // shop_types をmodal-update-shop_infoで選択肢で使うために取得
     this.getShopTypeInfo();
+    // vuex の clientOrWorker が worker かを確認してケアワーカーのみ作成可能にする。
+    if (this.$store.state.clientOrWorker != "worker") {
+      alert("エラーが発生しました。アカウント情報に誤りがあります。");
+      this.$router.replace("my-page");
+    }
   },
 };
 </script>
@@ -528,6 +774,7 @@ export default {
   font-size: 20px;
 }
 .modal-body .hide-btn {
+  display: inline-block;
   list-style: none;
   font-size: 14px;
   cursor: pointer;
@@ -537,6 +784,36 @@ export default {
   background-color: transparent;
   color: #a80000;
   cursor: pointer;
+}
+.modal-body .update-icon input {
+  height: 38px;
+  margin: 30px;
+  font-size: 20px;
+}
+.modal-body .update-icon .error {
+  font-size: 16px;
+}
+.modal-body .update-icon_btn {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: rgb(42, 171, 191);
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: pointer;
+}
+.modal-body .update-icon_btn-disable {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .update-name {
   position: static;
@@ -563,6 +840,17 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .update-name_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .update-email {
   position: static;
@@ -606,6 +894,18 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+.modal-body .update-email_btn:disabled {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
 .modal-body .update-number {
   position: static;
   z-index: 1;
@@ -631,6 +931,17 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .update-number_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .delete-number_btn {
   margin-bottom: 10px;
@@ -669,6 +980,17 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+.modal-body .update-role_id_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
 .modal-body .update-shop_id {
   position: static;
   z-index: 1;
@@ -678,7 +1000,7 @@ export default {
   background-color: #ffffff;
   text-align: center;
 }
-.modal-body .update-shop_id .update-shop_id_small-explain{
+.modal-body .update-shop_id .update-shop_id_small-explain {
   font-size: 12px;
   margin-top: 10px;
   margin-bottom: 30px;
@@ -693,6 +1015,30 @@ export default {
   background: rgb(42, 171, 191);
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
+  cursor: pointer;
+}
+.modal-body .update-shop_id_btn:disabled {
+  margin-top: 380px;
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
+.modal-body .store-shop_id_btn {
+  margin-top: 380px;
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: #a80000;
+  color: #fff;
+  border: 1px solid #500000;
   cursor: pointer;
 }
 .modal-body .store-shop_id_btn {
@@ -734,7 +1080,7 @@ export default {
   margin-top: 10px;
 }
 .modal-header .link {
-  color: #551A8B;
+  color: #551a8b;
   cursor: pointer;
   text-decoration: underline;
 }
@@ -744,7 +1090,7 @@ export default {
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
 }
-.modal-body .update-shop_info .update-shop_info_small-explain{
+.modal-body .update-shop_info .update-shop_info_small-explain {
   font-size: 12px;
   margin-top: 10px;
   margin-bottom: 30px;
@@ -760,6 +1106,18 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .update-shop_info_btn:disabled {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .change-shop_info_btn {
   margin-top: 30px;

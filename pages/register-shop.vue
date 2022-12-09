@@ -48,11 +48,10 @@
               </div>
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
-            <validation-provider
-              v-slot="{ errors }"
-              rules="email|max:256"
-            >
-              <p class="register-shop_box_input_ttl">メールアドレス <span class="small">※任意</span></p>
+            <validation-provider v-slot="{ errors }" rules="email|max:256">
+              <p class="register-shop_box_input_ttl">
+                メールアドレス <span class="small">※任意</span>
+              </p>
               <input
                 v-model="email"
                 type="email"
@@ -61,8 +60,10 @@
               />
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
-            <validation-provider v-slot="{ errors }" rules="phone|">
-              <p class="register-shop_box_input_ttl">電話番号<span class="small">※任意</span></p>
+            <validation-provider v-slot="{ errors }" rules="phone">
+              <p class="register-shop_box_input_ttl">
+                電話番号<span class="small">※任意</span>
+              </p>
               <input
                 v-model="number"
                 type="tel"
@@ -98,8 +99,13 @@ export default {
   },
   methods: {
     // 事業所分類選択のために shop_types の情報を取得
-    async getShopTypeInfo(){
-      const getShopTypeInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/shop_type");
+    async getShopTypeInfo() {
+      const getShopTypeInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/shop_type")
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       this.items = getShopTypeInfo.data.data;
     },
     // shops に事業所情報を登録
@@ -116,32 +122,53 @@ export default {
           number: this.number,
           email: this.email,
         };
-        await this.$axios.post(
-          "http://127.0.0.1:8000/api/v1/shop",
-          newShopInfo
-        );
-        // shops から登録したidを取得して登録
-        const getShopId = await this.$axios.get(
-          "http://127.0.0.1:8000/api/v1/shop-search",
-          { params : newShopInfo }
-        );
+        const getShopId = await this.$axios
+          .post("http://127.0.0.1:8000/api/v1/shop", newShopInfo)
+          .catch((error) => {
+            const Errors = error.response.data.errors;
+            for (let key in Errors) {
+              alert(
+                "エラーコード:" +
+                  error.response.data.status +
+                  " / エラー項目「" +
+                  key +
+                  "」\nエラー内容:" +
+                  Errors[key]
+              );
+            }
+            location.reload();
+          });
+        // shops から登録したidを取得してworkersに登録
         const shopId = {
-          shop_id : getShopId.data.data.id,
-        }
-        await this.$axios
-        .put(
+          shop_id: getShopId.data.data.id,
+        };
+        await this.$axios.put(
           "http://127.0.0.1:8000/api/v1/worker/" +
             this.$store.state.loginUserId,
           shopId
-        );
+        )
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
+        });
         this.$router.replace("/thanks-register-shop");
       }
     },
   },
-    created() {
+  created() {
     // vuex の clientOrWorker が worker かを確認してケアワーカーのみ作成可能にする。
-    if(this.$store.state.clientOrWorker != 'worker') {
-      alert('エラーが発生しました。アカウント情報に誤りがあります。')
+    if (this.$store.state.clientOrWorker != "worker") {
+      alert("エラーが発生しました。アカウント情報に誤りがあります。");
       this.$router.replace("my-page");
     }
     // shop_types を選択肢で使うために取得
@@ -174,7 +201,7 @@ export default {
 }
 .register-shop_box .form {
   margin-top: 20px;
-  text-align:center;
+  text-align: center;
 }
 .register-shop_box_input_ttl {
   margin-top: 20px;

@@ -1,7 +1,11 @@
 <template>
   <div v-if="$store.state.clientOrWorker == 'worker'" class="worker_box">
     <div class="img-box">
-      <img src="../img/worker.jpg" alt="worker" />
+      <img v-if="workerInfo.icon_path == null" src="../img/worker.jpg" alt="worker" class="icon-default" />
+      <img v-if="workerInfo.icon_path" :src="`${$axios.defaults.baseURL}${workerInfo.icon_path}`" alt="worker-icon" class="icon-own" />
+      <span @click="showUpdateIcon()" class="editable">
+        <img src="../img/update.jpg" alt="update" />
+      </span>
     </div>
     <div class="name-box">
       <p class="username">アカウント名:{{ workerInfo.name }}
@@ -96,10 +100,17 @@ export default {
       const getWorkerInfo = await this.$axios.get(
         "http://127.0.0.1:8000/api/v1/worker-search",
         { params: workerId }
-      );
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
       this.workerInfo = getWorkerInfo.data.data;
     },
     // clients の name、number、relation_type の登録、更新のモーダル画面の出し入れ。
+    showUpdateIcon() {
+      this.$modal.show("modal-update-icon");
+    },
     showUpdateName(Name) {
       this.workerName = Name;
       this.$modal.show("modal-update-name");
@@ -144,8 +155,15 @@ export default {
 .worker_box .shop-box {
   margin-top: 20px;
 }
-.worker_box .img-box img {
+.worker_box .img-box .icon-default {
   width: 100px;
+}
+.worker_box .img-box .icon-own {
+  object-fit: cover;
+  width: 150px;
+  height: 150px;
+  border-radius:50%;
+  margin: 0 auto;
 }
 .relation-info-box ul li {
   list-style: none;

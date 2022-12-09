@@ -1,5 +1,42 @@
 <template>
   <div>
+    <modal name="modal-update-icon" height="auto">
+      <div class="modal-header">
+        <h2>アイコンの変更</h2>
+      </div>
+      <div class="modal-body">
+        <div class="update-icon">
+          <input
+            type="file"
+            name="アイコン"
+            required
+            accept="image/jpg,image/jpeg,image/png,image/gif,image/tif,image/tiff,image/psd,image/svg"
+            @change="checkIcon"
+          />
+          <p v-if="this.overSizeIcon == true" class="error">
+            画像が10MBを超えています。10MB以下のみ使用可能です
+          </p>
+          <p v-if="this.exceptionIcon == true" class="error">
+            ファイル形式が読み取れません。jpg,jpeg,png,gif,tif,tiff,psd,svg
+            など他の形式をお試し下さい。
+          </p>
+          <button
+            v-if="this.errIconFile == false"
+            @click="updateIcon"
+            class="update-icon_btn"
+          >
+            アイコンを登録する
+          </button>
+          <button
+            v-if="this.errIconFile == true"
+            class="update-icon_btn-disable"
+          >
+            アイコンを登録する
+          </button>
+          <p v-on:click="hideIcon()" class="hide-btn">編集を中止する</p>
+        </div>
+      </div>
+    </modal>
     <modal name="modal-update-name" height="auto">
       <div class="modal-header">
         <h2>お名前の変更</h2>
@@ -36,9 +73,12 @@
       <div class="modal-body">
         <div class="update-email">
           <validation-observer ref="obs" v-slot="ObserverProps">
-            <validation-provider v-slot="{ errors }" rules="required|email|max:256|">
+            <validation-provider
+              v-slot="{ errors }"
+              rules="required|email|max:256|"
+            >
               <p>変更前のメールアドレス</p>
-              <p class="email">{{propsModal.clientEmail}}</p>
+              <p class="email">{{ propsModal.clientEmail }}</p>
               <p>変更後のメールアドレス</p>
               <input
                 v-model="newEmail"
@@ -76,7 +116,7 @@
       <div class="modal-body">
         <div class="update-number">
           <validation-observer ref="obs" v-slot="ObserverProps">
-            <validation-provider v-slot="{ errors }" rules="phone">
+            <validation-provider v-slot="{ errors }" rules="required|phone">
               <input
                 v-model="propsModal.clientPhoneNumber"
                 type="tel"
@@ -156,19 +196,26 @@
 </template>
 
 <script>
-import firebase from '~/plugins/firebase'
+import firebase from "~/plugins/firebase";
 export default {
   data() {
     return {
+      iconFile: "",
+      errIconFile: true,
+      overSizeIcon: false,
+      exceptionIcon: false,
       value: "",
-      newEmail:"",
-      password:"",
+      newEmail: "",
+      password: "",
     };
   },
   // ClientMyPage.vueからデータの引き継ぎ
   props: ["propsModal"],
   methods: {
     // モーダルを閉じる
+    hideIcon() {
+      this.$modal.hide("modal-update-icon");
+    },
     hideName() {
       this.$modal.hide("modal-update-name");
     },
@@ -180,6 +227,75 @@ export default {
     },
     hideRelation() {
       this.$modal.hide("modal-update-relation");
+    },
+    // アイコンの投稿のファイル選択時のバリデーション
+    checkIcon(p) {
+      this.iconFile = p.target.files[0];
+      const size = this.iconFile.size;
+      const type = this.iconFile.type;
+      // 10MBまででファイル形式は3種類のみ、違えばエラー表示と送信ボタンが使えない状態にする。
+      if (size > 10000000) {
+        this.errIconFile = true;
+        this.overSizeIcon = true;
+      }
+      if (
+        type != "image/jpg" &&
+        type != "image/jpeg" &&
+        type != "image/png" &&
+        type != "image/gif" &&
+        type != "image/tif" &&
+        type != "image/tiff" &&
+        type != "image/psd" &&
+        type != "image/svg"
+      ) {
+        this.errIconFile = true;
+        this.exceptionIcon = true;
+      }
+      if (size <= 10000000) {
+        this.overSizeIcon = false;
+        if (
+          type == "image/jpg" ||
+          type == "image/jpeg" ||
+          type == "image/png" ||
+          type == "image/gif" ||
+          type == "image/tif" ||
+          type == "image/tiff" ||
+          type == "image/psd" ||
+          type == "image/svg"
+        ) {
+          this.exceptionIcon = false;
+          this.errIconFile = false;
+        }
+      }
+    },
+    async updateIcon() {
+      // checkIconでエラーがない時のみ処理を行う
+      if (this.errIconFile == false) {
+        // ヘッダーでフォームデータを定義
+        const config = {
+          headers: { "content-type": "multipart/form-data" },
+        };
+        // Formデータ作成
+        const formData = new FormData();
+        formData.append("file", this.iconFile);
+        formData.append(
+          "client_id",
+          JSON.stringify(this.$store.state.loginUserId)
+        );
+        await this.$axios
+          .post(
+            "http://127.0.0.1:8000/api/v1/client-icon_update",
+            formData,
+            config
+          )
+          .catch(() => {
+            location.reload();
+            alert("エラーが起きました。しばらくしてから再度お試しください。");
+          });
+        location.reload();
+      } else {
+        location.reload();
+      }
     },
     // clientの name number email の更新
     async updateName() {
@@ -194,6 +310,20 @@ export default {
         )
         .then(() => {
           this.hideName();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
@@ -202,36 +332,42 @@ export default {
       await this.login();
       // firebaseでメールアドレスの変更
       const user = firebase.auth().currentUser;
-      user.updateEmail(this.newEmail)
-      .then(() => {
-        // firebaseのメールがupdateできたらデータベースも処理
-        this.updateEmailDb()
-      })
-      .catch((error) => {
-        switch (error.code) {
-        case 'auth/invalid-email':
-        alert('メールアドレスの形式が違います。')
-        break
-        case 'auth/user-disabled':
-        alert('ユーザーが無効になっています。')
-        break
-        case 'auth/user-not-found':
-        alert('ユーザーが存在しません。')
-        break
-        default:
-        alert('エラーが起きました。しばらくしてから再度お試しください。')
-        break
-        }
-      });
+      user
+        .updateEmail(this.newEmail)
+        .then(() => {
+          // firebaseのメールがupdateできたらデータベースも処理
+          this.updateEmailDb();
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("メールアドレスの形式が違います。");
+              break;
+            case "auth/user-disabled":
+              alert("ユーザーが無効になっています。");
+              break;
+            case "auth/user-not-found":
+              alert("ユーザーが存在しません。");
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
+        });
     },
     // firebase のメール変更のために再ログイン
     async login() {
-    await firebase.auth()
-    .signInWithEmailAndPassword(this.propsModal.clientEmail, this.password)
-    .catch((error) => {
-      const errorCode = error.code
-      alert('error : ' + errorCode + 'メールアドレスの変更に失敗しました。メールアドレスとパスワードをご確認の上、再度お試し下さい。')
-    });
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(this.propsModal.clientEmail, this.password)
+        .catch((error) => {
+          const errorCode = error.code;
+          alert(
+            "error : " +
+              errorCode +
+              "メールアドレスの変更に失敗しました。メールアドレスとパスワードをご確認の上、再度お試し下さい。"
+          );
+        });
     },
     // firebaseのメールがupdateできたら下の処理する
     async updateEmailDb() {
@@ -246,9 +382,24 @@ export default {
         )
         .then(() => {
           this.hideName();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
+    // clientの電話番号更新、削除
     async updateNumber() {
       const UpdateNumber = {
         number: this.propsModal.clientPhoneNumber,
@@ -261,10 +412,23 @@ export default {
         )
         .then(() => {
           this.hideNumber();
+        })
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
-    // clientの電話番号削除
     async deleteNumber() {
       const DeleteNumber = {
         number: null,
@@ -277,27 +441,39 @@ export default {
         )
         .then(() => {
           this.hideNumber();
+        })
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
         });
       location.reload();
     },
-    // clientのrelation_typeの更新
+    // clientのrelation_typeの作成、更新
     async updateRelation() {
-      const checkRelation = {
-        client_id: this.$store.state.loginUserId,
-        patient_id: this.propsModal.clientRelationPatientId,
-      };
-      const resultCheckRelation = await this.$axios.get("http://127.0.0.1:8000/api/v1/relation-check", { params: checkRelation });
       const updateRelationInfo = {
         relation_type_id: this.value,
         client_id: this.$store.state.loginUserId,
         patient_id: this.propsModal.clientRelationPatientId,
       };
-        if (resultCheckRelation.data.data){
-          console.log(resultCheckRelation.data.data)
-          await this.$axios.put("http://127.0.0.1:8000/api/v1/relation/" + resultCheckRelation.data.data.id, updateRelationInfo);
-        } else if (resultCheckRelation.data.data == null) {
-          await this.$axios.post("http://127.0.0.1:8000/api/v1/relation", updateRelationInfo)
-        }
+      await this.$axios
+        .post(
+          "http://127.0.0.1:8000/api/v1/relation-update",
+          updateRelationInfo
+        )
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
+        });
       this.hideRelation();
       location.reload();
     },
@@ -315,6 +491,7 @@ export default {
   font-size: 20px;
 }
 .modal-body .hide-btn {
+  display: inline-block;
   list-style: none;
   font-size: 14px;
   cursor: pointer;
@@ -324,6 +501,36 @@ export default {
   background-color: transparent;
   color: #a80000;
   cursor: pointer;
+}
+.modal-body .update-icon input {
+  height: 38px;
+  margin: 30px;
+  font-size: 20px;
+}
+.modal-body .update-icon .error {
+  font-size: 16px;
+}
+.modal-body .update-icon_btn {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: rgb(42, 171, 191);
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: pointer;
+}
+.modal-body .update-icon_btn-disable {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .update-name {
   position: static;
@@ -350,6 +557,17 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .update-name_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .modal-body .update-email {
   position: static;
@@ -393,6 +611,18 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+.modal-body .update-email_btn:disabled {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
 .modal-body .update-number {
   position: static;
   z-index: 1;
@@ -415,6 +645,28 @@ export default {
   padding-top: 5px;
   padding-bottom: 5px;
   background: rgb(42, 171, 191);
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: pointer;
+}
+.modal-body .update-number_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
+.modal-body .delete-number_btn {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: #a80000;
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
@@ -455,5 +707,16 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .update-relation_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 </style>

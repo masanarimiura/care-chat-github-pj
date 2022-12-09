@@ -1,7 +1,11 @@
 <template>
   <div v-if="$store.state.clientOrWorker == 'client'" class="client_box">
     <div class="img-box">
-      <img src="../img/client.jpg" alt="client" />
+      <img v-if="clientInfo.icon_path == null" src="../img/client.jpg" alt="client" class="icon-default" />
+      <img v-if="clientInfo.icon_path" :src="`${$axios.defaults.baseURL}${clientInfo.icon_path}`" alt="client-icon" class="icon-own" />
+      <span @click="showUpdateIcon(clientInfo.icon)" class="editable">
+        <img src="../img/update.jpg" alt="update" />
+      </span>
     </div>
     <div class="name-box">
       <p class="username">アカウント名:{{ clientInfo.name }}
@@ -88,10 +92,17 @@ export default {
       const getClientInfo = await this.$axios.get(
         "http://127.0.0.1:8000/api/v1/client-search",
         { params: clientId }
-      );
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
       this.clientInfo = getClientInfo.data.data;
     },
     // clients の name、number、relation_type の登録、更新のモーダル画面の出し入れ。
+    showUpdateIcon() {
+      this.$modal.show("modal-update-icon");
+    },
     showUpdateName(Name) {
       this.clientName = Name;
       this.$modal.show("modal-update-name");
@@ -128,8 +139,15 @@ export default {
 .client_box .relation-box {
   margin-top: 20px;
 }
-.client_box .img-box img {
+.client_box .img-box .icon-default {
   width: 100px;
+}
+.client_box .img-box .icon-own {
+  object-fit: cover;
+  width: 150px;
+  height: 150px;
+  border-radius:50%;
+  margin: 0 auto;
 }
 .relation-info-box ul li {
   list-style: none;

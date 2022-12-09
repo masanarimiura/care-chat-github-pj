@@ -57,12 +57,14 @@
                 required
                 placeholder="パスワード"
               />
-              <p class="login_box_password-reset" @click="showResetPassword()">※パスワードを忘れてしまった場合はこちら</p>
+              <p class="login_box_password-reset" @click="showResetPassword()">
+                ※パスワードを忘れてしまった場合はこちら
+              </p>
               <br />
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
             <button
-              @click="login()"
+              @click="loginFirebase()"
               class="login__btn"
               :disabled="ObserverProps.invalid || !ObserverProps.validated"
             >
@@ -97,7 +99,9 @@
     <modal name="modal-reset-password" height="auto">
       <div class="modal-header">
         <h2>パスワードを忘れてしまった場合</h2>
-        <p>メールアドレスに新しいパスワードを設定できるようにURLをお送りします。</p>
+        <p>
+          メールアドレスに新しいパスワードを設定できるようにURLをお送りします。
+        </p>
       </div>
       <div class="modal-body">
         <div class="reset-password">
@@ -121,7 +125,9 @@
               パスワード変更のメールを送る
             </button>
           </validation-observer>
-          <p v-on:click="hideName()" class="hide-btn">編集を中止する</p>
+          <p v-on:click="hideResetPassword()" class="hide-btn">
+            編集を中止する
+          </p>
         </div>
       </div>
     </modal>
@@ -129,7 +135,7 @@
 </template>
 
 <script>
-import firebase from '~/plugins/firebase'
+import firebase from "~/plugins/firebase";
 export default {
   data() {
     return {
@@ -140,34 +146,92 @@ export default {
   },
   methods: {
     // firebaseにログイン情報を送信
-    async login() {
-      await firebase.auth()
-      .signInWithEmailAndPassword(this.email, this.password)
-      .catch((error) => {
-        const errorCode = error.code
-        alert('error : ' + errorCode + 'ログインに失敗しました。メールアドレスとパスワードをご確認の上、再度お試し下さい。')
-        this.$router.replace('/');
-      })
-      .then(() => {
-        // メール認証が済んでいない場合は確認メールの再送
-        if (firebase.auth().currentUser.emailVerified == false) {
-          alert('メールアドレスの確認が取れませんでした。再度、確認メールを送信しましたので、ご自身のメールをご確認下さい。')
-          firebase.auth().currentUser.sendEmailVerification()
-          this.$router.replace('/')
-        } else if (firebase.auth().currentUser.emailVerified == true) {
-          this.$router.replace("/patient-index");
-        }
-      });
+    async loginFirebase() {
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(this.email, this.password)
+        .then(() => {
+          // メール認証が済んでいない場合は確認メールの再送
+          if (firebase.auth().currentUser.emailVerified == false) {
+            alert(
+              "確認メールを送信しましたので、ご自身のメールをご確認下さい。"
+            );
+            firebase.auth().currentUser.sendEmailVerification({
+              url: "http://localhost:3000/thanks-register-account",
+              handleCodeInApp: true,
+            });
+          } else if (firebase.auth().currentUser.emailVerified == true) {
+            this.$router.replace("/patient-index");
+          }
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case "auth/user-disabled":
+              alert(
+                "入力頂いたアカウントのサービスの利用が停止されています。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            case "auth/user-not-found":
+              alert(
+                "メールアドレスまたはパスワードが違います。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            case "auth/wrong-password":
+              alert(
+                "パスワードが間違っています。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            case "auth/requires-recent-login":
+              alert(
+                "認証の有効期限が切れています。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
+          location.reload();
+        });
+    },
+    hideResetPassword() {
+      this.$modal.hide("modal-reset-password");
     },
     showResetPassword() {
       this.$modal.show("modal-reset-password");
     },
-    resetPassword() {
-      firebase.auth().sendPasswordResetEmail(this.emailPasswordReset);
-      this.$router.replace('/wait-email-verification');
+    async resetPassword() {
+      await firebase
+        .auth()
+        .sendPasswordResetEmail(this.emailPasswordReset)
+        .then(() => {
+          this.$router.replace("/wait-email-verification")
+        })
+        .catch((error) => {
+          location.reload();
+          switch (error.code) {
+            case "auth/user-disabled":
+              alert(
+                "入力頂いたアカウントのサービスの利用が停止されています。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            case "auth/user-not-found":
+              alert(
+                "入力頂いたメールアドレスが見つかりません。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            case "auth/requires-recent-login":
+              alert(
+                "認証の有効期限が切れています。内容をご確認の上再度お試し下さい。"
+              );
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
+        });
     },
-  }
-}
+  },
+};
 </script>
 
 <style>
@@ -248,6 +312,17 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+.login__btn:disabled {
+  margin: 20px;
+  width: 100px;
+  border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: rgb(171, 212, 218);
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: not-allowed;
+}
 .register_box {
   background-color: rgb(211, 252, 237);
 }
@@ -312,5 +387,16 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.modal-body .reset-password_btn:disabled {
+  margin-top: 20px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: rgb(171, 212, 218);
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: not-allowed;
 }
 </style>

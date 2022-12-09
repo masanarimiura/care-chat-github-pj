@@ -8,8 +8,12 @@
         <p class="thanks_box_content_name">{{ this.patientName }}</p>
         <p class="thanks_box_content">チャットパスワード:</p>
         <p class="thanks_box_content_name">{{ this.patientPassword }}</p>
-        <p class="thanks_box_content">上記の内容を一緒にご利用されたい方への共有をお願いします。</p>
-        <p class="thanks_box_btn" @click="join()">こちらより「{{ this.patientName }}」患者チャットへ参加して下さい</p>
+        <p class="thanks_box_content">
+          上記の内容を一緒にご利用されたい方への共有をお願いします。
+        </p>
+        <p class="thanks_box_btn" @click="join()">
+          こちらより「{{ this.patientName }}」患者チャットへ参加して下さい
+        </p>
       </div>
     </div>
   </div>
@@ -26,28 +30,38 @@ export default {
   },
   methods: {
     async join() {
-      this.$router.replace('patient-chat');
+      this.$router.replace("patient-chat");
     },
   },
   async created() {
     // firebaseのログインチェック
-    this.$store.dispatch('onAuth')
+    this.$store.dispatch("onAuth");
     // patient_id からpatientの情報を検索
-    this.patientId = this.$store.state.joinedPatientId;
-    const getPatientInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/patient/" + this.patientId);
-    console.log(getPatientInfo)
-    this.patientName = getPatientInfo.data.data.name;
-    this.patientPassword = getPatientInfo.data.data.password;
-  }
-}
+    if(this.$store.state.joinedPatientId){
+      this.patientId = this.$store.state.joinedPatientId;
+      const getPatientInfo = await this.$axios.get(
+        "http://127.0.0.1:8000/api/v1/patient/" + this.patientId
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
+      this.patientName = getPatientInfo.data.data.name;
+      this.patientPassword = getPatientInfo.data.data.password;
+    } else {
+      alert("エラーが起きました。しばらくしてから再度お試しください。");
+      this.$router.replace("patient-index");
+    }
+  },
+};
 </script>
 
 <style>
-.thanks{
+.thanks {
   display: flex;
   justify-content: center;
 }
-.thanks_box{
+.thanks_box {
   width: 600px;
   height: auto;
   text-align: center;
@@ -56,26 +70,26 @@ export default {
   border-radius: 10px;
   padding: 50px;
 }
-.thanks_box_ttl{
+.thanks_box_ttl {
   font-size: 30px;
   padding-bottom: 50px;
 }
-.thanks_box_content{
+.thanks_box_content {
   margin-top: 10px;
-  line-height:40px;
+  line-height: 40px;
   font-size: 20px;
 }
-.thanks_box_content_name{
-  line-height:40px;
+.thanks_box_content_name {
+  line-height: 40px;
   font-size: 30px;
   color: rgb(167, 0, 0);
 }
-.thanks_box_btn{
+.thanks_box_btn {
   margin-top: 10px;
-  line-height:40px;
+  line-height: 40px;
   font-size: 20px;
   color: rgb(0, 0, 238);
-  text-decoration:underline;
+  text-decoration: underline;
   cursor: pointer;
 }
 .thanks_box_btn:hover {

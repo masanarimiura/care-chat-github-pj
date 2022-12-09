@@ -37,7 +37,8 @@
         class="drawer-back"
         :class="{ open: navOpen }"
         @click="navOpen = false"
-      ></div>
+      >
+      </div>
       <div class="drawer" :class="{ open: navOpen }">
         <nav>
           <ul>
@@ -85,6 +86,7 @@ export default {
         .signOut()
         .then(() => {
           this.$store.commit("logout");
+          this.$router.replace('/');
         });
     },
     vuexCheck() {

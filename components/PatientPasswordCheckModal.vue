@@ -3,7 +3,9 @@
     <modal name="modal-patient-info" height="auto">
       <div class="modal-header">
         <h2>チャットID、パスワードの確認</h2>
-        <p class="patient-info_content">下記の内容を一緒にご利用されたい方への共有をお願いします。</p>
+        <p class="patient-info_content">
+          下記の内容を一緒にご利用されたい方への共有をお願いします。
+        </p>
       </div>
       <div class="modal-body">
         <p class="patient-info_content">チャットID:</p>
@@ -27,12 +29,19 @@ export default {
   },
   methods: {
     backChat() {
-      this.$router.replace('patient-chat');
+      this.$router.replace("patient-chat");
     },
     // patient_id からpatientの情報を検索
-    async getPatientInfo(){
+    async getPatientInfo() {
       this.patientId = this.$store.state.joinedPatientId;
-      const getPatientInfo = await this.$axios.get("http://127.0.0.1:8000/api/v1/patient/" + this.patientId );
+      const getPatientInfo = await this.$axios.get(
+        "http://127.0.0.1:8000/api/v1/patient/" + this.patientId
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      })
+      ;
       this.patientName = getPatientInfo.data.data.name;
       this.patientPassword = getPatientInfo.data.data.password;
     },
@@ -44,7 +53,7 @@ export default {
     // patient_id からpatientの情報を検索
     this.getPatientInfo();
   },
-  beforeDestroy(){
+  beforeDestroy() {
     this.$store.commit("resetJoinPatientId");
   },
 };
@@ -59,14 +68,14 @@ export default {
   border-bottom: 1px solid #ddd;
   font-size: 20px;
 }
-.modal-header .patient-info_content{
+.modal-header .patient-info_content {
   font-size: 18px;
 }
-.modal-body .patient-info_content{
+.modal-body .patient-info_content {
   font-size: 18px;
 }
-.modal-body .patient-info_content_name{
-  line-height:40px;
+.modal-body .patient-info_content_name {
+  line-height: 40px;
   font-size: 30px;
   color: rgb(167, 0, 0);
 }

@@ -8,7 +8,8 @@
       </p>
     </div>
     <div class="patient-join-record">
-      <h3>過去に参加したチャットに参加</h3>
+      <h3>過去に参加したチャット</h3>
+      <p v-if="patientsData.length == 0">参加履歴はありません。<br>「チャットに参加」または「チャットの新規作成」をご利用下さい。</p>
       <ul>
         <li v-for="patient in patientsData" :key="patient.patient.name">
           <p @click="joinRecord(patient.patient.id)">
@@ -41,7 +42,7 @@
             <p class="patient-join_box_input_ttl">チャットパスワード</p>
             <validation-provider
               v-slot="{ errors }"
-              rules="required|min:6|max:256"
+              rules="required|min:6|max:256|alpha_dash"
             >
               <input
                 v-model="password"
@@ -99,7 +100,11 @@ export default {
         const getClientPatientRecord = await this.$axios.get(
           "http://127.0.0.1:8000/api/v1/client-patient-search",
           { params: clientId }
-        );
+        )
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
         this.patientsData = getClientPatientRecord.data.data;
       } else if (this.$store.state.clientOrWorker == "worker") {
         const workerId = {
@@ -108,8 +113,16 @@ export default {
         const getWorkerPatientRecord = await this.$axios.get(
           "http://127.0.0.1:8000/api/v1/worker-patient-search",
           { params: workerId }
-        );
+        )
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
         this.patientsData = getWorkerPatientRecord.data.data;
+      } else {
+        alert('登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。')
+        this.$store.commit('logout')
+        this.$router.replace('/')
       }
     },
     // 履歴をクリックするとそのpatientのページにアクセス
@@ -130,44 +143,55 @@ export default {
         "http://127.0.0.1:8000/api/v1/patient-search",
         { params: patientNamePass }
       );
-      this.patientId = getPatientId.data.data.id;
+      if(getPatientId.data.data) {
+        this.patientId = getPatientId.data.data.id;
+        this.joinPatientId();
+      } else if (getPatientId.data.data == null) {
+        location.reload();
+        alert("「チャットID」もしくは「チャットパスワード」に誤りがあります。再度、内容のご確認をお願いします。");
+      } else {
+        location.reload();
+        alert("エラーが発生しました。再度、内容のご確認をお願いします。");
+      }
+    },
+    async joinPatientId() {
       // 次のページでpatient_idを利用するためvuexに保管する。
-      this.$store.commit("SetJoinPatientId", this.patientId);
+      await this.$store.commit("SetJoinPatientId", this.patientId);
       // ログインアカウントがclient or workerかを判別する。
       if (this.$store.state.clientOrWorker == "client") {
-        // clientの場合、まずclient-patientsテーブルに患者チャット参加の履歴があるか確認。
+        // clientの場合、client-patientsテーブルに患者チャット参加の履歴があるか確認し保存。
         const clientIdPatientId = {
           client_id: this.$store.state.loginUserId,
           patient_id: this.patientId,
         };
-        const checkClientPatientRecord = await this.$axios.get(
-          "http://127.0.0.1:8000/api/v1/client-patient-check",
-          { params: clientIdPatientId }
-        );
-        if (checkClientPatientRecord.data.data.length == 0) {
-          // 履歴が無い場合、中間のclient-patientsテーブルに患者チャット参加の履歴をclient_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/client-patient",
-            clientIdPatientId
-          );
-        }
+        await this.$axios.post(
+          "http://127.0.0.1:8000/api/v1/client-patient",
+          clientIdPatientId
+        )
+        .catch((error) => { 
+          const Errors = error.response.data.errors
+          for (let key in Errors) {
+            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+          }
+          location.reload();
+        });
       } else if (this.$store.state.clientOrWorker == "worker") {
-        // workerの場合、まずworker-patientsテーブルに患者チャット参加の履歴があるか確認。
+        // workerの場合、まずworker-patientsテーブルに患者チャット参加の履歴があるか確認し保存。
         const workerIdPatientId = {
           worker_id: this.$store.state.loginUserId,
           patient_id: this.patientId,
         };
-        const checkWorkerPatientRecord = await this.$axios.get(
-          "http://127.0.0.1:8000/api/v1/worker-patient-check",
-          { params: workerIdPatientId }
-        );
-        if (checkWorkerPatientRecord.data.data.length == 0) {
-          // 履歴が無い場合、中間のworker-patientsテーブルに患者チャット参加の履歴をworker_idと参加したpatient_idを記録。ある場合は無視。
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/worker-patient",
-            workerIdPatientId
-          );
-        }
+        await this.$axios.post(
+          "http://127.0.0.1:8000/api/v1/worker-patient",
+          workerIdPatientId
+        )
+        .catch((error) => { 
+          const Errors = error.response.data.errors
+          for (let key in Errors) {
+            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+          }
+          location.reload();
+        });
       }
       this.$router.replace("patient-chat");
     },
@@ -215,6 +239,12 @@ export default {
 .patient-join-record h3 {
   font-size: 30px;
 }
+.patient-join-record p {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #a80000;
+  line-height: 20px;
+}
 .patient-join-record ul {
   margin: 20px;
   display: block;
@@ -231,6 +261,7 @@ export default {
   width: fit-content;
   font-size: 20px;
   text-decoration: underline;
+  color: rgb(42, 171, 191);
 }
 .patient-join-record ul li p:hover {
   background-color: transparent;
@@ -288,6 +319,17 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.patient-join__btn:disabled {
+  margin: 20px;
+  width: 100px;
+  border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 .patient-make_box {
   background-color: rgb(211, 252, 237);

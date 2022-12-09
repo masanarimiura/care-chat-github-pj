@@ -59,7 +59,7 @@ export const mutations = {
 
 export const actions = {
   // 認証ページのfirebaseのログインチェックとVuexの「id」「name」「uid」「client or worker」「ログイン状態」の変更
-  async onAuth({ commit }) {
+  onAuth({ commit }) {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         // メール認証がまだの場合、メールの再送
@@ -89,6 +89,10 @@ export const actions = {
                 commit('clientLogin')
               }
             })
+            .catch((error) => {
+              alert('エラーが発生しました。内容をご確認頂き、再度ログインをお願いします。\nエラーメッセージ:'+ error.message)
+              this.$router.replace('/')
+            })
           this.$axios.get("http://127.0.0.1:8000/api/v1/worker-check", { params: searchUid })
           .then((result) => {
             if (result.data.data != undefined) {
@@ -103,11 +107,15 @@ export const actions = {
               commit('workerLogin')
             }
           })
+          .catch((error) => {
+            alert('エラーが発生しました。内容をご確認頂き、再度ログインをお願いします。\nエラーメッセージ:' + error.message)
+            this.$router.replace('/')
+          })
         }
       // ログインしていない場合、firebaseのログアウト時にvuexのストアもリセットする。
       } else {
         commit('logout')
-        alert('ログインアウトの状態です。再度ご利用になりたい場合はもう一度ログインをお願いします。')
+        alert('ログインアウトしました。再度ご利用になりたい場合はもう一度ログインをお願いします。')
         this.$router.replace('/')
       }
     })

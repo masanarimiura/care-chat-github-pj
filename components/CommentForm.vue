@@ -45,7 +45,14 @@ export default {
         await this.$axios.post(
           "http://127.0.0.1:8000/api/v1/comment",
           newComment
-        );
+        )
+        .catch((error) => { 
+          const Errors = error.response.data.errors
+          for (let key in Errors) {
+            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+          }
+          location.reload();
+        });
       } else if (this.$store.state.clientOrWorker == "worker") {
         const newComment = {
           content: this.commentContent,
@@ -55,7 +62,18 @@ export default {
         await this.$axios.post(
           "http://127.0.0.1:8000/api/v1/comment",
           newComment
-        );
+        )
+        .catch((error) => { 
+          const Errors = error.response.data.errors
+          for (let key in Errors) {
+            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+          }
+          location.reload();
+        });
+      } else {
+        alert('登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。')
+        this.$store.commit('logout')
+        this.$router.replace('/')
       }
       location.reload();
     },
@@ -99,5 +117,16 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.comment-form_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 </style>

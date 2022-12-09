@@ -39,7 +39,7 @@
         <div class="delete-content_box">
           <p>{{ this.propsModal.commentContent }}</p>
         </div>
-        <button @click="deleteComment()" class="comment-form_btn">
+        <button @click="deleteComment()" class="comment-delete_btn">
           上記のコメントを削除する
         </button>
         <p v-on:click="hideDelete()" class="hide-btn">
@@ -73,6 +73,13 @@ export default {
         )
         .then(() => {
           this.hideUpdate();
+        })
+        .catch((error) => { 
+        const Errors = error.response.data.errors
+        for (let key in Errors) {
+          alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+        }
+        location.reload();
         });
       location.reload();
     },
@@ -82,6 +89,10 @@ export default {
         .delete("http://127.0.0.1:8000/api/v1/comment/" + this.propsModal.commentId)
         .then(() => {
           this.hideUpdate();
+        })
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
         });
       location.reload();
     },
@@ -125,6 +136,28 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+.modal-body .comment-form_btn:disabled {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
+}
+.modal-body .comment-delete_btn {
+  margin-bottom: 10px;
+  width: auto;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: #a80000;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  cursor: pointer;
+}
 .modal-body .delete-content_box {
   min-height: 100px;
 }
@@ -132,6 +165,7 @@ export default {
   color: rgb(80, 36, 0);
 }
 .modal-body .hide-btn {
+  display: inline-block;
   list-style: none;
   font-size: 14px;
   cursor: pointer;

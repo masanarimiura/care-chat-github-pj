@@ -85,6 +85,7 @@ export default {
       password: "",
       confirmation: "",
       newPatientId: "",
+      newPatientInfo: {},
     };
   },
   methods: {
@@ -95,39 +96,61 @@ export default {
         name: this.name,
         password: this.password,
       };
-      await this.$axios.post(
+      const getNewPatientId = await this.$axios.post(
         "http://127.0.0.1:8000/api/v1/patient",
         newPatientNamePass
-      );
-      // patients テーブルで作成されたデータの id を検索して patient_idを見つける。
-      const getNewPatientId = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/patient-search",
-        { params: newPatientNamePass }
-      );
-      this.newPatientId = getNewPatientId.data.data.id;
-      // ログインアカウントがclient か workerかを判別して、それぞれの中間テーブルに履歴を記録
-      if (this.$store.state.clientOrWorker == "client") {
-        const clientIdAndPatientId = {
-          client_id: this.$store.state.loginUserId,
-          patient_id: this.newPatientId,
-        };
-        await this.$axios.post(
-          "http://127.0.0.1:8000/api/v1/client-patient",
-          clientIdAndPatientId
-        );
-      } else if (this.$store.state.clientOrWorker == "worker") {
-        const workerIdAndPatientId = {
-          worker_id: this.$store.state.loginUserId,
-          patient_id: this.newPatientId,
-        };
-        await this.$axios.post(
-          "http://127.0.0.1:8000/api/v1/worker-patient",
-          workerIdAndPatientId
-        );
+      )
+      .catch((error) => { 
+        const Errors = error.response.data.errors
+        for (let key in Errors) {
+          alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+        }
+      });
+      // 既に存在するpasswordの場合、入力し直してもらう。
+      if(getNewPatientId.status == 202) {
+        alert('ご入力頂いたパスワードが既に使用されているためご利用できません。他のパスワードをご入力下さい。')
+      } else if(getNewPatientId.data.data){
+        this.newPatientInfo = getNewPatientId.data.data;
+        this.newPatientId = getNewPatientId.data.data.id;
+        // ログインアカウントがclient か workerかを判別して、それぞれの中間テーブルに履歴を記録
+        if (this.$store.state.clientOrWorker == "client") {
+          const clientIdAndPatientId = {
+            client_id: this.$store.state.loginUserId,
+            patient_id: this.newPatientId,
+          };
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/client-patient",
+            clientIdAndPatientId
+          )
+          .catch(() => {
+            location.reload();
+            alert("エラーが起きました。しばらくしてから再度お試しください。");
+          });
+          // patient_idをVuex.storeで保持
+          await this.$store.commit("SetJoinPatientId", this.newPatientId);
+          this.$router.replace("thanks-make-patient");
+        } else if (this.$store.state.clientOrWorker == "worker") {
+          const workerIdAndPatientId = {
+            worker_id: this.$store.state.loginUserId,
+            patient_id: this.newPatientId,
+          };
+          await this.$axios.post(
+            "http://127.0.0.1:8000/api/v1/worker-patient",
+            workerIdAndPatientId
+          )
+          .catch(() => {
+            location.reload();
+            alert("エラーが起きました。しばらくしてから再度お試しください。");
+          });
+          // patient_idをVuex.storeで保持
+          await this.$store.commit("SetJoinPatientId", this.newPatientId);
+          this.$router.replace("thanks-make-patient");
+        } else {
+          alert('登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。')
+          this.$store.commit('logout')
+          this.$router.replace('/')
+        }
       }
-      // patient_idをVuex.storeで保持
-      await this.$store.commit("SetJoinPatientId", this.newPatientId);
-      this.$router.replace("thanks-make-patient");
     },
   },
 };
@@ -182,5 +205,16 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.patient-make_btn:disabled {
+  margin: 20px;
+  width: 100px;
+  border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 </style>

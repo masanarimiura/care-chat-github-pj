@@ -1,7 +1,8 @@
 <template>
   <div v-if="$route.query.client_or_worker == 'worker'" class="worker_box">
     <div class="img-box">
-      <img src="../img/worker.jpg" alt="worker" />
+      <img v-if="workerInfo.icon_path == null" src="../img/worker.jpg" alt="worker" class="icon-default" />
+      <img v-if="workerInfo.icon_path" :src="`${$axios.defaults.baseURL}${workerInfo.icon_path}`" alt="worker-icon" class="icon-own" />
     </div>
     <div class="name-box">
       <p class="username">アカウント名:{{ workerInfo.name }}
@@ -69,7 +70,11 @@ export default {
       const getWorkerInfo = await this.$axios.get(
         "http://127.0.0.1:8000/api/v1/worker-search",
         { params: workerId }
-      );
+      )
+      .catch(() => {
+        this.$router.replace("/patient-index");
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
       this.workerInfo = getWorkerInfo.data.data;
     },
   },
@@ -93,7 +98,7 @@ export default {
 .worker_box .shop-box {
   margin-top: 20px;
 }
-.worker_box .img-box img {
+.worker_box .img-box .icon {
   width: 100px;
 }
 .relation-info-box ul li {

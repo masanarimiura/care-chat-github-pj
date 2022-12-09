@@ -112,7 +112,7 @@ export default {
         .then((data) => {
           this.uid = data.user.uid;
           data.user.sendEmailVerification({
-            url: 'http://localhost:3000/thanks-register-account/',
+            url: "http://localhost:3000/thanks-register-account",
             handleCodeInApp: true,
           });
         })
@@ -132,11 +132,7 @@ export default {
               break;
           }
         });
-      // 情報が足りない場合の対処
-      if (!this.name || !this.email || !this.password || !this.uid) {
-        alert("エラーが起きました。しばらくしてから再度お試しください。");
-        this.$router.replace("/register-worker");
-      } else {
+      if(this.uid){
         // workerテーブルにfirebaseの登録情報を送信
         const newClientData = {
           name: this.name,
@@ -147,7 +143,14 @@ export default {
         await this.$axios.post(
           "http://127.0.0.1:8000/api/v1/worker",
           newClientData
-        );
+        )
+        .catch((error) => { 
+          const Errors = error.response.data.errors
+          for (let key in Errors) {
+            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
+          }
+          location.reload();
+        });
         this.$router.replace("/wait-email-verification");
       }
     },
@@ -205,5 +208,16 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
+}
+.register-worker_btn:disabled {
+  margin: 20px;
+  width: 100px;
+  border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: #fff;
+  border: 1px solid rgb(28, 117, 131);
+  background: rgb(171, 212, 218);
+  cursor: not-allowed;
 }
 </style>

@@ -13,14 +13,43 @@
         </p>
       </div>
       <div class="v-for_box" v-for="comment in comments" :key="comment.id">
-        <div class="client-balloon" v-if="comment.client_id == !null && comment.worker_id == null">
-          <div @click="otherClientMyPage(comment.client_id)" class="client-balloon_img-box">
-            <img src="../img/client.jpg" alt="client" />
+        <div
+          class="client-balloon"
+          v-if="comment.client_id == !null && comment.worker_id == null"
+        >
+          <div
+            @click="otherClientMyPage(comment.client_id)"
+            class="client-balloon_img-box"
+          >
+            <img
+              v-if="comment.client.icon_path == null"
+              src="../img/client.jpg"
+              alt="client"
+              class="icon-default"
+            />
+            <img
+              v-if="comment.client.icon_path"
+              :src="`${$axios.defaults.baseURL}${comment.client.icon_path}`"
+              alt="../img/client.jpg"
+              class="icon-own"
+            />
             <p class="client_name">
-              <span v-for="relation in comment.client.relations" :key="relation.id">
-                <span v-if="relation.patient_id == comment.patient_id">{{ relation.relation_type.name }}:</span>
+              <span
+                v-for="relation in comment.client.relations"
+                :key="relation.id"
+              >
+                <span v-if="relation.patient_id == comment.patient_id"
+                  >{{ relation.relation_type.name }}:</span
+                >
               </span>
-                <span v-if="comment.client.relations.find((v) => v.patient_id === comment.patient_id) == null">クライアント:</span>
+              <span
+                v-if="
+                  comment.client.relations.find(
+                    (v) => v.patient_id === comment.patient_id
+                  ) == null
+                "
+                >クライアント:</span
+              >
               <br />{{ comment.client.name }}
             </p>
           </div>
@@ -52,11 +81,30 @@
             </div>
           </div>
         </div>
-        <div class="worker-balloon" v-if="comment.worker_id == !null && comment.client_id == null">
-          <div @click="otherWorkerMyPage(comment.worker_id)" class="worker-balloon_img-box">
-            <img src="../img/worker.jpg" alt="worker" />
+        <div
+          class="worker-balloon"
+          v-if="comment.worker_id == !null && comment.client_id == null"
+        >
+          <div
+            @click="otherWorkerMyPage(comment.worker_id)"
+            class="worker-balloon_img-box"
+          >
+            <img
+              v-if="comment.worker.icon_path == null"
+              src="../img/worker.jpg"
+              alt="client"
+              class="icon-default"
+            />
+            <img
+              v-if="comment.worker.icon_path"
+              :src="`${$axios.defaults.baseURL}${comment.worker.icon_path}`"
+              alt="../img/worker.jpg"
+              class="icon-own"
+            />
             <p class="worker_name">
-              <span v-if="comment.worker.role_id">{{ comment.worker.role.name }}:</span>
+              <span v-if="comment.worker.role_id"
+                >{{ comment.worker.role.name }}:</span
+              >
               <span v-if="comment.worker.role_id == null">ケアワーカー:</span>
               <br />{{ comment.worker.name }}
             </p>
@@ -90,7 +138,9 @@
           </div>
         </div>
       </div>
-      <CommentShowModal :propsModal="{commentId,commentContent}"></CommentShowModal>
+      <CommentShowModal
+        :propsModal="{ commentId, commentContent }"
+      ></CommentShowModal>
     </div>
   </div>
 </template>
@@ -120,7 +170,11 @@ export default {
       this.patientId = this.$store.state.joinedPatientId;
       const getPatientInfo = await this.$axios.get(
         "http://127.0.0.1:8000/api/v1/patient/" + this.patientId
-      );
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
       this.patientName = getPatientInfo.data.data.name;
     },
     // patient_id からコメントと付随した情報を引き出す。
@@ -131,7 +185,11 @@ export default {
       const getCommentForPatient = await this.$axios.get(
         "http://127.0.0.1:8000/api/v1/comment-search",
         { params: patientId }
-      );
+      )
+      .catch(() => {
+        location.reload();
+        alert("エラーが起きました。しばらくしてから再度お試しください。");
+      });
       // コメントの並び順を新しい順に並べて保管
       this.comments = getCommentForPatient.data.data.slice().reverse();
     },
@@ -145,18 +203,30 @@ export default {
       this.commentContent = ReceiveCommentContent;
       this.$modal.show("modal-delete");
     },
-    otherClientMyPage(commentClientId){
-      if(this.$store.state.clientOrWorker == 'client' && commentClientId == this.$store.state.loginUserId){
-        this.$router.replace('my-page')
+    otherClientMyPage(commentClientId) {
+      if (
+        this.$store.state.clientOrWorker == "client" &&
+        commentClientId == this.$store.state.loginUserId
+      ) {
+        this.$router.replace("my-page");
       } else {
-        this.$router.push({ path: 'other-my-page' , query :{ client_or_worker:'client', client_id: commentClientId }});
+        this.$router.push({
+          path: "other-my-page",
+          query: { client_or_worker: "client", client_id: commentClientId },
+        });
       }
     },
-    otherWorkerMyPage(commentWorkerId){
-      if(this.$store.state.clientOrWorker == 'worker' && commentWorkerId == this.$store.state.loginUserId ){
-        this.$router.replace('my-page')
+    otherWorkerMyPage(commentWorkerId) {
+      if (
+        this.$store.state.clientOrWorker == "worker" &&
+        commentWorkerId == this.$store.state.loginUserId
+      ) {
+        this.$router.replace("my-page");
       } else {
-        this.$router.push({ path: 'other-my-page' , query :{ client_or_worker:'worker', worker_id: commentWorkerId }});
+        this.$router.push({
+          path: "other-my-page",
+          query: { client_or_worker: "worker", worker_id: commentWorkerId },
+        });
       }
     },
   },
@@ -196,7 +266,7 @@ export default {
 }
 .comment-null {
   margin: 0 auto;
-  color: red;
+  color: #a80000;
 }
 .v-for_box {
   width: 100%;
@@ -213,11 +283,20 @@ export default {
   position: relative;
   cursor: pointer;
 }
-.client-balloon_img-box img {
+.client-balloon_img-box .icon-default {
   width: 60%;
   max-width: 130px;
   position: absolute;
   top: 35px;
+}
+.client-balloon_img-box .icon-own {
+  object-fit: cover;
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  top: 40px;
+  border-radius: 50%;
+  margin: 0 auto;
 }
 .client-balloon_img-box .client_name {
   position: absolute;
@@ -277,12 +356,22 @@ export default {
   position: relative;
   cursor: pointer;
 }
-.worker-balloon_img-box img {
+.worker-balloon_img-box .icon-default {
   width: 60%;
   max-width: 130px;
   position: absolute;
   top: 35px;
   right: 0px;
+}
+.worker-balloon_img-box .icon-own {
+  object-fit: cover;
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  top: 40px;
+  right: 0px;
+  border-radius: 50%;
+  margin: 0 auto;
 }
 .worker-balloon_img-box .worker_name {
   position: absolute;
