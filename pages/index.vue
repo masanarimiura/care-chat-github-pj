@@ -44,7 +44,6 @@
               />
               <div class="error">{{ errors[0] }}</div>
             </validation-provider>
-            <br />
             <p class="login_box_input_ttl">パスワード</p>
             <validation-provider
               v-slot="{ errors }"
@@ -204,7 +203,7 @@ export default {
         .auth()
         .sendPasswordResetEmail(this.emailPasswordReset)
         .then(() => {
-          this.$router.replace("/wait-email-verification")
+          this.$router.replace("/wait-email-verification");
         })
         .catch((error) => {
           location.reload();
@@ -248,6 +247,20 @@ export default {
   margin-top: 10px;
   text-align: left;
   font-size: 14px;
+}
+@media screen and (max-width: 768px) {
+  .login-register_ttl {
+    width: 100%;
+  }
+  .login-register_ttl h2 {
+    font-size: 20px;
+  }
+  .login-register_ttl p {
+    margin-top: 5px;
+    padding-left: 10px;
+    text-align: left;
+    font-size: 12px;
+  }
 }
 .login-register {
   margin: 10px 50px 0 50px;
@@ -339,6 +352,56 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+@media screen and (max-width: 768px) {
+  .login-register {
+    margin: 0px;
+  }
+  .login_box,
+  .register_box {
+    max-width: 750px;
+    width: 90vw;
+    padding: 10px;
+  }
+  .login_box_ttl,
+  .register_box_ttl {
+    font-size: 20px;
+  }
+  .register_box_content,
+  .login_box_content {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .login_box_input_ttl {
+    font-size: 12px;
+  }
+  .login_box input {
+    width: 80%;
+    margin: 5px;
+    height: 20px;
+    border: 2px solid rgb(42, 171, 191);
+    border-radius: 10px;
+  }
+  .login_box_password-reset {
+    font-size: 12px;
+  }
+  .login__btn {
+    margin: 5px;
+    width: 100px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .login__btn:disabled {
+    margin: 5px;
+    width: 100px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .register_box .nuxt-link {
+    margin-top: 6px;
+    font-size: 16px;
+    padding: 10px;
+  }
+}
 .modal-header,
 .modal-body {
   padding: 5px 25px;
@@ -398,5 +461,15 @@ export default {
   color: #fff;
   border: 1px solid rgb(28, 117, 131);
   cursor: not-allowed;
+}
+@media screen and (max-width: 768px) {
+  .modal-body .reset-password p {
+    margin-top: 10px;
+  }
+  .modal-body .reset-password input {
+    width: 80%;
+    height: 20px;
+    font-size: 12px;
+  }
 }
 </style>

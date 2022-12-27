@@ -94,4 +94,15 @@ export default {
 .relation-info-box ul li {
   list-style: none;
 }
+@media screen and (max-width: 768px) {
+  .client_box p {
+    font-size: 16px;
+  }
+  .client_box .name-box,
+  .client_box .email-box,
+  .client_box .number-box,
+  .client_box .relation-box {
+    margin-top: 10px;
+  }
+}
 </style>

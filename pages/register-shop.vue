@@ -234,4 +234,44 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   cursor: pointer;
 }
+@media screen and (max-width: 768px) {
+  .register-shop {
+    margin: 0 20px;
+  }
+  .register-shop_box {
+    width: 100%;
+    padding: 10px;
+  }
+  .register-shop_box_ttl {
+    font-size: 20px;
+  }
+  .register-shop_box_content {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .register-shop_box .form {
+    margin-top: 10px;
+  }
+  .register-shop_box_input_ttl {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  .register-shop_box_input_content {
+    font-size: 12px;
+  }
+  .register-shop_box input {
+    width: 300px !important;
+    height: 20px !important;
+  }
+  .register-shop_btn {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .register-shop_btn:disabled {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
 </style>

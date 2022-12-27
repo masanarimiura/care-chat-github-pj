@@ -220,4 +220,44 @@ export default {
   background: rgb(171, 212, 218);
   cursor: not-allowed;
 }
+@media screen and (max-width: 768px) {
+  .register-worker {
+    margin: 0 20px;
+  }
+  .register-worker_box {
+    width: 100%;
+    padding: 10px;
+  }
+  .register-worker_box_ttl {
+    font-size: 20px;
+  }
+  .register-worker_box_content {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .register-worker_box .form {
+    margin-top: 10px;
+  }
+  .register-worker_box_input_ttl {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  .register-worker_box_input_content {
+    font-size: 12px;
+  }
+  .register-worker_box input {
+    width: 80%;
+    height: 20px;
+  }
+  .register-worker_btn {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .register-worker_btn:disabled {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
 </style>

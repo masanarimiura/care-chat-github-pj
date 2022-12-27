@@ -1,21 +1,33 @@
 <template>
   <div v-if="$store.state.clientOrWorker == 'client'" class="client_box">
     <div class="img-box">
-      <img v-if="clientInfo.icon_path == null" src="../img/client.jpg" alt="client" class="icon-default" />
-      <img v-if="clientInfo.icon_path" :src="`${$axios.defaults.baseURL}${clientInfo.icon_path}`" alt="client-icon" class="icon-own" />
+      <img
+        v-if="clientInfo.icon_path == null"
+        src="../img/client.jpg"
+        alt="client"
+        class="icon-default"
+      />
+      <img
+        v-if="clientInfo.icon_path"
+        :src="`${$axios.defaults.baseURL}${clientInfo.icon_path}`"
+        alt="client-icon"
+        class="icon-own"
+      />
       <span @click="showUpdateIcon(clientInfo.icon)" class="editable">
         <img src="../img/update.jpg" alt="update" />
       </span>
     </div>
     <div class="name-box">
-      <p class="username">アカウント名:{{ clientInfo.name }}
+      <p class="username">
+        アカウント名:{{ clientInfo.name }}
         <span @click="showUpdateName(clientInfo.name)" class="editable">
           <img src="../img/update.jpg" alt="update" />
         </span>
       </p>
     </div>
     <div class="email-box">
-      <p class="email">メールアドレス:{{ clientInfo.email }}
+      <p class="email">
+        メールアドレス:{{ clientInfo.email }}
         <span @click="showUpdateEmail(clientInfo.email)" class="editable">
           <img src="../img/update.jpg" alt="update" />
         </span>
@@ -42,15 +54,39 @@
           <li v-for="record in clientInfo.client_patients" :key="record.id">
             <p>
               {{ record.patient.name }}:
-              <span v-if="record.patient.relations.some((u) => u.client_id == [clientInfo.id])">
-                <span v-for="relation in record.patient.relations" :key="relation.id">
-                  <span v-if="relation.client_id == clientInfo.id" class="editable">
-                    {{relation.relation_type.name}}<img src="../img/update.jpg" alt="update" 
-                    @click="showUpdateRelation(record.patient.id)" />
+              <span
+                v-if="
+                  record.patient.relations.some(
+                    (u) => u.client_id == [clientInfo.id]
+                  )
+                "
+              >
+                <span
+                  v-for="relation in record.patient.relations"
+                  :key="relation.id"
+                >
+                  <span
+                    v-if="relation.client_id == clientInfo.id"
+                    class="editable"
+                  >
+                    {{ relation.relation_type.name
+                    }}<img
+                      src="../img/update.jpg"
+                      alt="update"
+                      @click="showUpdateRelation(record.patient.id)"
+                    />
                   </span>
                 </span>
               </span>
-              <span v-if="record.patient.relations.some((u) => u.client_id != [clientInfo.id])||record.patient.relations.length == 0" class="editable" @click="showUpdateRelation(record.patient.id)">
+              <span
+                v-if="
+                  record.patient.relations.some(
+                    (u) => u.client_id != [clientInfo.id]
+                  ) || record.patient.relations.length == 0
+                "
+                class="editable"
+                @click="showUpdateRelation(record.patient.id)"
+              >
                 未登録<img src="../img/update.jpg" alt="update" />
               </span>
             </p>
@@ -89,14 +125,12 @@ export default {
       const clientId = {
         id: this.$store.state.loginUserId,
       };
-      const getClientInfo = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/client-search",
-        { params: clientId }
-      )
-      .catch(() => {
-        location.reload();
-        alert("エラーが起きました。しばらくしてから再度お試しください。");
-      });
+      const getClientInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/client-search", { params: clientId })
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       this.clientInfo = getClientInfo.data.data;
     },
     // clients の name、number、relation_type の登録、更新のモーダル画面の出し入れ。
@@ -146,7 +180,7 @@ export default {
   object-fit: cover;
   width: 150px;
   height: 150px;
-  border-radius:50%;
+  border-radius: 50%;
   margin: 0 auto;
 }
 .relation-info-box ul li {
@@ -166,5 +200,16 @@ export default {
   bottom: 2px;
   width: 16px;
   cursor: pointer;
+}
+@media screen and (max-width: 768px) {
+  .client_box p {
+    font-size: 16px;
+  }
+  .client_box .name-box,
+  .client_box .email-box,
+  .client_box .number-box,
+  .client_box .relation-box {
+    margin-top: 10px;
+  }
 }
 </style>

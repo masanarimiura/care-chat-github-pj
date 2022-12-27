@@ -6,18 +6,19 @@
         <h3 class="thanks_box_ttl">事業所情報の登録が完了しました。</h3>
         <p class="thanks_box_content">
           <NuxtLink to="/my-page">マイページにて</NuxtLink>
-          ご確認ををお願いします</p>
+          ご確認ををお願いします
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <style>
-.thanks{
+.thanks {
   display: flex;
   justify-content: center;
 }
-.thanks_box{
+.thanks_box {
   width: 600px;
   height: auto;
   text-align: center;
@@ -26,13 +27,27 @@
   border-radius: 10px;
   padding: 50px;
 }
-.thanks_box_ttl{
+.thanks_box_ttl {
   font-size: 30px;
   padding-bottom: 50px;
 }
-.thanks_box_content{
+.thanks_box_content {
   margin-top: 10px;
-  line-height:40px;
+  line-height: 40px;
   font-size: 20px;
+}
+@media screen and (max-width: 768px) {
+  .thanks_box {
+    width: 80vw;
+    padding: 20px;
+  }
+  .thanks_box_ttl {
+    font-size: 20px;
+    padding-bottom: 20px;
+  }
+  .thanks_box_content {
+    line-height: 20px;
+    font-size: 16px;
+  }
 }
 </style>

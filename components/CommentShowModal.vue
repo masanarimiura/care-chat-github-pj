@@ -74,19 +74,28 @@ export default {
         .then(() => {
           this.hideUpdate();
         })
-        .catch((error) => { 
-        const Errors = error.response.data.errors
-        for (let key in Errors) {
-          alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
-        }
-        location.reload();
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
         });
       location.reload();
     },
     // コメントの削除
     async deleteComment() {
       await this.$axios
-        .delete("http://127.0.0.1:8000/api/v1/comment/" + this.propsModal.commentId)
+        .delete(
+          "http://127.0.0.1:8000/api/v1/comment/" + this.propsModal.commentId
+        )
         .then(() => {
           this.hideUpdate();
         })
@@ -175,5 +184,16 @@ export default {
   background-color: transparent;
   color: #a80000;
   cursor: pointer;
+}
+@media screen and (max-width: 768px) {
+  .modal-body .comment-form textarea {
+    font-size: 16px;
+  }
+  .modal-body .delete-content_box {
+    margin: 14px 0;
+  }
+  .modal-body .delete-content_box p {
+    font-size: 14px;
+  }
 }
 </style>

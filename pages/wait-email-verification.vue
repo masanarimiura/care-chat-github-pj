@@ -33,4 +33,18 @@
   line-height:40px;
   font-size: 20px;
 }
+@media screen and (max-width: 768px) {
+  .thanks_box {
+    width: 80vw;
+    padding: 20px;
+  }
+  .thanks_box_ttl {
+    font-size: 20px;
+    padding-bottom: 20px;
+  }
+  .thanks_box_content {
+    line-height: 20px;
+    font-size: 16px;
+  }
+}
 </style>

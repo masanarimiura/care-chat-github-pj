@@ -507,6 +507,13 @@ export default {
   margin: 30px;
   font-size: 20px;
 }
+@media screen and (max-width: 768px) {
+  .modal-body .update-icon input {
+    height: 30px;
+    margin: 10px;
+    font-size: 16px;
+  }
+}
 .modal-body .update-icon .error {
   font-size: 16px;
 }
@@ -546,6 +553,13 @@ export default {
   font-size: 26px;
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
+}
+@media screen and (max-width: 768px) {
+  .modal-body .update-name input {
+    height: 20px;
+    margin: 20px;
+    font-size: 16px;
+  }
 }
 .modal-body .update-name_btn {
   margin-bottom: 10px;
@@ -599,6 +613,21 @@ export default {
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
 }
+@media screen and (max-width: 768px) {
+  .modal-body .update-email p {
+    margin-top: 20px;
+  }
+  .modal-body .update-email .email {
+    width: 300px;
+    height: 20px;
+    font-size: 16px;
+  }
+  .modal-body .update-email input {
+    width: 300px;
+    height: 24px;
+    font-size: 16px;
+  }
+}
 .modal-body .update-email_btn {
   margin-top: 30px;
   margin-bottom: 10px;
@@ -637,6 +666,13 @@ export default {
   font-size: 26px;
   border: 2px solid rgb(42, 171, 191);
   border-radius: 10px;
+}
+@media screen and (max-width: 768px) {
+  .modal-body .update-number input {
+    height: 20px;
+    margin: 20px;
+    font-size: 16px;
+  }
 }
 .modal-body .update-number_btn {
   margin-bottom: 10px;

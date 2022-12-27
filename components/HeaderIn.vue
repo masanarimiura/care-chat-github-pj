@@ -10,11 +10,12 @@
               <h2>Chat</h2>
             </div>
           </NuxtLink>
-          <div class="vuex-check" @click="vuexCheck()">
-            <p>Vuex-check</p>
-          </div>
         </div>
-        <div class="username-hamburger" @click="navOpen = !navOpen" :class="{ open: navOpen }">
+        <div
+          class="username-hamburger"
+          @click="navOpen = !navOpen"
+          :class="{ open: navOpen }"
+        >
           <div class="username">
             <p v-if="this.$store.state.clientOrWorker == 'client'">
               アカウント:クライアント
@@ -37,16 +38,19 @@
         class="drawer-back"
         :class="{ open: navOpen }"
         @click="navOpen = false"
-      >
-      </div>
+      ></div>
       <div class="drawer" :class="{ open: navOpen }">
         <nav>
           <ul>
             <li v-if="$store.state.joinedPatientId == !null">
               <p
-                @click="navOpen = false;openModalToMyPage()"
-                >このチャットのパスワードを表示</p
+                @click="
+                  navOpen = false;
+                  openModalToMyPage();
+                "
               >
+                このチャットのパスワードを表示
+              </p>
             </li>
             <li>
               <NuxtLink to="my-page" @click.native="navOpen = false"
@@ -59,7 +63,14 @@
               >
             </li>
             <li>
-              <p @click="logout();navOpen = false;">ログアウト</p>
+              <p
+                @click="
+                  logout();
+                  navOpen = false;
+                "
+              >
+                ログアウト
+              </p>
             </li>
           </ul>
         </nav>
@@ -69,7 +80,7 @@
 </template>
 
 <script>
-import firebase from '~/plugins/firebase'
+import firebase from "~/plugins/firebase";
 export default {
   data() {
     return {
@@ -86,20 +97,12 @@ export default {
         .signOut()
         .then(() => {
           this.$store.commit("logout");
-          this.$router.replace('/');
+          this.$router.replace("/");
         });
-    },
-    vuexCheck() {
-      console.log("loginUserId: " + this.$store.state.loginUserId);
-      console.log("loginUserName: " + this.$store.state.loginUserName);
-      console.log("userUid: " + this.$store.state.userUid);
-      console.log("loggedIn: " + this.$store.state.loggedIn);
-      console.log("clientOrWorker: " + this.$store.state.clientOrWorker);
-      console.log("joinedPatientId: " + this.$store.state.joinedPatientId);
     },
     // 親のpatient-chat.vueに送る
     openModalToMyPage() {
-      this.$emit('openModal');
+      this.$emit("openModal");
     },
   },
   async created() {
@@ -142,6 +145,17 @@ export default {
   padding-left: 5px;
   display: inline-block;
   color: rgb(42, 171, 191);
+}
+@media screen and (max-width: 768px) {
+  .header-in_outer {
+    height: 50px;
+  }
+  .header-in_img {
+    height: 40px;
+  }
+  .header-in_ttl {
+    font-size: 20px;
+  }
 }
 .username-hamburger {
   position: relative;
@@ -203,6 +217,20 @@ export default {
   top: 14px;
   transform: rotate(-45deg);
 }
+@media screen and (max-width: 768px) {
+  .username-hamburger .username {
+    top: 4px;
+    right: 30px;
+    width: 160px;
+  }
+  .username-hamburger .username p {
+    font-size: 12px;
+  }
+  .username-hamburger .hamburger {
+    top: 4px;
+    right: 10px;
+  }
+}
 .drawer {
   position: fixed;
   top: 0;
@@ -222,11 +250,13 @@ export default {
   margin: 30px;
   font-size: 20px;
 }
-.drawer nav li a,.drawer nav li p{
+.drawer nav li a,
+.drawer nav li p {
   color: rgb(42, 171, 191);
   text-decoration: underline;
 }
-.drawer nav li a:hover,.drawer nav li p:hover{
+.drawer nav li a:hover,
+.drawer nav li p:hover {
   color: #a80000;
   cursor: pointer;
 }
@@ -246,5 +276,20 @@ export default {
 }
 .drawer-back.open {
   display: block;
+}
+@media screen and (max-width: 768px) {
+  .drawer {
+    width: 100%;
+  }
+  .drawer nav {
+    margin-top: 80px;
+  }
+  .drawer nav ul{
+    text-align: center;
+  }
+  .drawer nav li {
+    margin: 20px;
+    font-size: 16px;
+  }
 }
 </style>

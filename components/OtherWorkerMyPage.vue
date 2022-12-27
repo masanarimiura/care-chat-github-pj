@@ -104,19 +104,16 @@ export default {
 .relation-info-box ul li {
   list-style: none;
 }
-.editable {
-  position: relative;
-  text-decoration: underline;
-}
-.editable:hover {
-  color: #a80000;
-  cursor: pointer;
-}
-.editable img {
-  position: absolute;
-  right: -22px;
-  bottom: 2px;
-  width: 16px;
-  cursor: pointer;
+@media screen and (max-width: 768px) {
+  .worker_box p {
+    font-size: 16px;
+  }
+  .worker_box .name-box,
+  .worker_box .email-box,
+  .worker_box .number-box,
+  .worker_box .role-box,
+  .worker_box .shop-box {
+    margin-top: 10px;
+  }
 }
 </style>

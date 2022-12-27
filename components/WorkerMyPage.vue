@@ -183,4 +183,16 @@ export default {
   width: 16px;
   cursor: pointer;
 }
+@media screen and (max-width: 768px) {
+  .worker_box p {
+    font-size: 16px;
+  }
+  .worker_box .name-box,
+  .worker_box .email-box,
+  .worker_box .number-box,
+  .worker_box .role-box,
+  .worker_box .shop-box {
+    margin-top: 10px;
+  }
+}
 </style>

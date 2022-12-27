@@ -110,31 +110,31 @@ export default {
     async register() {
       // まずはfirebaseに登録。この時点ではclientとworker区別なし。
       await firebase
-      .auth()
-      .createUserWithEmailAndPassword(this.email, this.password)
-      .then((data) => {
-        this.uid = data.user.uid;
-        data.user.sendEmailVerification({
-          url: 'http://localhost:3000/thanks-register-account',
-          handleCodeInApp: true,
+        .auth()
+        .createUserWithEmailAndPassword(this.email, this.password)
+        .then((data) => {
+          this.uid = data.user.uid;
+          data.user.sendEmailVerification({
+            url: "http://localhost:3000/thanks-register-account",
+            handleCodeInApp: true,
+          });
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("メールアドレスの形式が違います。");
+              break;
+            case "auth/email-already-in-use":
+              alert("このメールアドレスはすでに使われています。");
+              break;
+            case "auth/weak-password":
+              alert("パスワードは6文字以上で入力してください。");
+              break;
+            default:
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+              break;
+          }
         });
-      })
-      .catch((error) => {
-        switch (error.code) {
-          case "auth/invalid-email":
-            alert("メールアドレスの形式が違います。");
-            break;
-          case "auth/email-already-in-use":
-            alert("このメールアドレスはすでに使われています。");
-            break;
-          case "auth/weak-password":
-            alert("パスワードは6文字以上で入力してください。");
-            break;
-          default:
-            alert("エラーが起きました。しばらくしてから再度お試しください。");
-            break;
-        }
-      });
       // clientテーブルにfirebaseの登録情報を送信
       const newClientData = {
         name: this.name,
@@ -142,17 +142,22 @@ export default {
         password: this.password,
         uid: this.uid,
       };
-      await this.$axios.post(
-        "http://127.0.0.1:8000/api/v1/client",
-        newClientData
-      )
-      .catch((error) => { 
-        const Errors = error.response.data.errors
-        for (let key in Errors) {
-          alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
-        }
-        location.reload();
-      });
+      await this.$axios
+        .post("http://127.0.0.1:8000/api/v1/client", newClientData)
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+          location.reload();
+        });
       this.$router.replace("/wait-email-verification");
     },
   },
@@ -183,7 +188,7 @@ export default {
 }
 .register-client_box .form {
   margin-top: 20px;
-  text-align:center;
+  text-align: center;
 }
 .register-client_box_input_ttl {
   margin-top: 20px;
@@ -220,5 +225,45 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   background: rgb(171, 212, 218);
   cursor: not-allowed;
+}
+@media screen and (max-width: 768px) {
+  .register-client {
+    margin: 0 20px;
+  }
+  .register-client_box {
+    width: 100%;
+    padding: 10px;
+  }
+  .register-client_box_ttl {
+    font-size: 20px;
+  }
+  .register-client_box_content {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .register-client_box .form {
+    margin-top: 10px;
+  }
+  .register-client_box_input_ttl {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  .register-client_box_input_content {
+    font-size: 12px;
+  }
+  .register-client_box input {
+    width: 80%;
+    height: 20px;
+  }
+  .register-client_btn {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .register-client_btn:disabled {
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
 }
 </style>

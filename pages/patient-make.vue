@@ -96,20 +96,27 @@ export default {
         name: this.name,
         password: this.password,
       };
-      const getNewPatientId = await this.$axios.post(
-        "http://127.0.0.1:8000/api/v1/patient",
-        newPatientNamePass
-      )
-      .catch((error) => { 
-        const Errors = error.response.data.errors
-        for (let key in Errors) {
-          alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
-        }
-      });
+      const getNewPatientId = await this.$axios
+        .post("http://127.0.0.1:8000/api/v1/patient", newPatientNamePass)
+        .catch((error) => {
+          const Errors = error.response.data.errors;
+          for (let key in Errors) {
+            alert(
+              "エラーコード:" +
+                error.response.data.status +
+                " / エラー項目「" +
+                key +
+                "」\nエラー内容:" +
+                Errors[key]
+            );
+          }
+        });
       // 既に存在するpasswordの場合、入力し直してもらう。
-      if(getNewPatientId.status == 202) {
-        alert('ご入力頂いたパスワードが既に使用されているためご利用できません。他のパスワードをご入力下さい。')
-      } else if(getNewPatientId.data.data){
+      if (getNewPatientId.status == 202) {
+        alert(
+          "ご入力頂いたパスワードが既に使用されているためご利用できません。他のパスワードをご入力下さい。"
+        );
+      } else if (getNewPatientId.data.data) {
         this.newPatientInfo = getNewPatientId.data.data;
         this.newPatientId = getNewPatientId.data.data.id;
         // ログインアカウントがclient か workerかを判別して、それぞれの中間テーブルに履歴を記録
@@ -118,14 +125,15 @@ export default {
             client_id: this.$store.state.loginUserId,
             patient_id: this.newPatientId,
           };
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/client-patient",
-            clientIdAndPatientId
-          )
-          .catch(() => {
-            location.reload();
-            alert("エラーが起きました。しばらくしてから再度お試しください。");
-          });
+          await this.$axios
+            .post(
+              "http://127.0.0.1:8000/api/v1/client-patient",
+              clientIdAndPatientId
+            )
+            .catch(() => {
+              location.reload();
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+            });
           // patient_idをVuex.storeで保持
           await this.$store.commit("SetJoinPatientId", this.newPatientId);
           this.$router.replace("thanks-make-patient");
@@ -134,21 +142,24 @@ export default {
             worker_id: this.$store.state.loginUserId,
             patient_id: this.newPatientId,
           };
-          await this.$axios.post(
-            "http://127.0.0.1:8000/api/v1/worker-patient",
-            workerIdAndPatientId
-          )
-          .catch(() => {
-            location.reload();
-            alert("エラーが起きました。しばらくしてから再度お試しください。");
-          });
+          await this.$axios
+            .post(
+              "http://127.0.0.1:8000/api/v1/worker-patient",
+              workerIdAndPatientId
+            )
+            .catch(() => {
+              location.reload();
+              alert("エラーが起きました。しばらくしてから再度お試しください。");
+            });
           // patient_idをVuex.storeで保持
           await this.$store.commit("SetJoinPatientId", this.newPatientId);
           this.$router.replace("thanks-make-patient");
         } else {
-          alert('登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。')
-          this.$store.commit('logout')
-          this.$router.replace('/')
+          alert(
+            "登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。"
+          );
+          this.$store.commit("logout");
+          this.$router.replace("/");
         }
       }
     },
@@ -177,9 +188,9 @@ export default {
   margin-top: 10px;
   font-size: 12px;
 }
-.patient-make_box .form{
+.patient-make_box .form {
   margin-top: 20px;
-  text-align:center;
+  text-align: center;
 }
 .patient-make_box_input_ttl {
   margin-top: 20px;
@@ -216,5 +227,46 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   background: rgb(171, 212, 218);
   cursor: not-allowed;
+}
+@media screen and (max-width: 768px) {
+  .patient-make {
+    margin: 10px;
+  }
+  .patient-make_box {
+    width: 80vw;
+    padding: 20px;
+  }
+  .patient-make_box_ttl {
+    font-size: 20px;
+  }
+  .patient-make_box_content {
+    margin-top: 0px;
+  }
+  .patient-make_box .form {
+    margin-top: 20px;
+  }
+  .patient-make_box_input_ttl {
+    margin-top: 10px;
+    font-size:  16px;
+  }
+  .patient-make_box_input_content {
+    font-size: 12px;
+  }
+  .patient-make_box input {
+    width: 80%;
+    height: 20px;
+  }
+  .patient-make_btn {
+    margin: 10px;
+    width: 100px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .patient-make_btn:disabled {
+    margin: 10px;
+    width: 100px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
 }
 </style>

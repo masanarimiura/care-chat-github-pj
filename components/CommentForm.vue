@@ -32,7 +32,7 @@ export default {
       commentContent: "",
     };
   },
-    methods: {
+  methods: {
     // patient_idに対する新規の comment を作成する
     async sendComment() {
       //  ログインアカウントがclientかworkerかを判断し保存内容を変える。
@@ -42,38 +42,50 @@ export default {
           patient_id: this.$store.state.joinedPatientId,
           client_id: this.$store.state.loginUserId,
         };
-        await this.$axios.post(
-          "http://127.0.0.1:8000/api/v1/comment",
-          newComment
-        )
-        .catch((error) => { 
-          const Errors = error.response.data.errors
-          for (let key in Errors) {
-            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
-          }
-          location.reload();
-        });
+        await this.$axios
+          .post("http://127.0.0.1:8000/api/v1/comment", newComment)
+          .catch((error) => {
+            const Errors = error.response.data.errors;
+            for (let key in Errors) {
+              alert(
+                "エラーコード:" +
+                  error.response.data.status +
+                  " / エラー項目「" +
+                  key +
+                  "」\nエラー内容:" +
+                  Errors[key]
+              );
+            }
+            location.reload();
+          });
       } else if (this.$store.state.clientOrWorker == "worker") {
         const newComment = {
           content: this.commentContent,
           patient_id: this.$store.state.joinedPatientId,
           worker_id: this.$store.state.loginUserId,
         };
-        await this.$axios.post(
-          "http://127.0.0.1:8000/api/v1/comment",
-          newComment
-        )
-        .catch((error) => { 
-          const Errors = error.response.data.errors
-          for (let key in Errors) {
-            alert('エラーコード:'+error.response.data.status+' / エラー項目「'+ key + '」\nエラー内容:' + Errors[key]);
-          }
-          location.reload();
-        });
+        await this.$axios
+          .post("http://127.0.0.1:8000/api/v1/comment", newComment)
+          .catch((error) => {
+            const Errors = error.response.data.errors;
+            for (let key in Errors) {
+              alert(
+                "エラーコード:" +
+                  error.response.data.status +
+                  " / エラー項目「" +
+                  key +
+                  "」\nエラー内容:" +
+                  Errors[key]
+              );
+            }
+            location.reload();
+          });
       } else {
-        alert('登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。')
-        this.$store.commit('logout')
-        this.$router.replace('/')
+        alert(
+          "登録情報にエラーがある可能性があります。内容をご確認頂き、再度ログインをお試し下さい。"
+        );
+        this.$store.commit("logout");
+        this.$router.replace("/");
       }
       location.reload();
     },
@@ -128,5 +140,10 @@ export default {
   border: 1px solid rgb(28, 117, 131);
   background: rgb(171, 212, 218);
   cursor: not-allowed;
+}
+@media screen and (max-width: 768px) {
+  .comment-form textarea {
+    font-size: 16px;
+  }
 }
 </style>

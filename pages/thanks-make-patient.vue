@@ -37,15 +37,14 @@ export default {
     // firebaseのログインチェック
     this.$store.dispatch("onAuth");
     // patient_id からpatientの情報を検索
-    if(this.$store.state.joinedPatientId){
+    if (this.$store.state.joinedPatientId) {
       this.patientId = this.$store.state.joinedPatientId;
-      const getPatientInfo = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/patient/" + this.patientId
-      )
-      .catch(() => {
-        location.reload();
-        alert("エラーが起きました。しばらくしてから再度お試しください。");
-      });
+      const getPatientInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/patient/" + this.patientId)
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       this.patientName = getPatientInfo.data.data.name;
       this.patientPassword = getPatientInfo.data.data.password;
     } else {
@@ -96,5 +95,27 @@ export default {
   background-color: transparent;
   color: #a80000;
   cursor: pointer;
+}
+@media screen and (max-width: 768px) {
+  .thanks_box {
+    width: 80vw;
+    padding: 20px;
+  }
+  .thanks_box_ttl {
+    font-size: 20px;
+    padding-bottom: 20px;
+  }
+  .thanks_box_content {
+    line-height: 20px;
+    font-size: 16px;
+  }
+  .thanks_box_content_name {
+    line-height: 30px;
+    font-size: 20px;
+  }
+  .thanks_box_btn {
+    line-height: 30px;
+    font-size: 16px;
+  }
 }
 </style>

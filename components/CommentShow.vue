@@ -168,13 +168,12 @@ export default {
     async getPatientName() {
       // チャットIDからpatientsのnameを検索して表示
       this.patientId = this.$store.state.joinedPatientId;
-      const getPatientInfo = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/patient/" + this.patientId
-      )
-      .catch(() => {
-        location.reload();
-        alert("エラーが起きました。しばらくしてから再度お試しください。");
-      });
+      const getPatientInfo = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/patient/" + this.patientId)
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       this.patientName = getPatientInfo.data.data.name;
     },
     // patient_id からコメントと付随した情報を引き出す。
@@ -182,14 +181,14 @@ export default {
       const patientId = {
         patient_id: this.$store.state.joinedPatientId,
       };
-      const getCommentForPatient = await this.$axios.get(
-        "http://127.0.0.1:8000/api/v1/comment-search",
-        { params: patientId }
-      )
-      .catch(() => {
-        location.reload();
-        alert("エラーが起きました。しばらくしてから再度お試しください。");
-      });
+      const getCommentForPatient = await this.$axios
+        .get("http://127.0.0.1:8000/api/v1/comment-search", {
+          params: patientId,
+        })
+        .catch(() => {
+          location.reload();
+          alert("エラーが起きました。しばらくしてから再度お試しください。");
+        });
       // コメントの並び順を新しい順に並べて保管
       this.comments = getCommentForPatient.data.data.slice().reverse();
     },
@@ -255,6 +254,17 @@ export default {
   margin-top: 10px;
   text-align: left;
   font-size: 20px;
+}
+@media screen and (max-width: 768px) {
+  .login-register_ttl {
+    width: 80%;
+  }
+  .login-register_ttl h2 {
+    font-size: 20px;
+  }
+  .login-register_ttl p {
+    font-size: 16px;
+  }
 }
 .chat-area {
   display: flex;
@@ -409,5 +419,56 @@ export default {
   border-width: 15px 30px 15px 0;
   border-color: transparent rgb(233, 245, 255) transparent transparent;
   transform: rotate(180deg);
+}
+@media screen and (max-width: 768px) {
+  .chat-area {
+    margin: 10px auto;
+  }
+  .comment-null {
+    margin: 10px auto;
+  }
+  .client-balloon_img-box {
+    width: 14%;
+  }
+  .client-balloon_img-box .icon-default {
+    top: 40px;
+  }
+  .client-balloon_img-box .client_name {
+    font-size: 8px;
+  }
+  .client-balloon_comment {
+    width: 63%;
+  }
+  .client-balloon_comment-box {
+    padding: 20px;
+    font-size: 14px;
+  }
+  .update-delete img {
+    width: 14px;
+  }
+  .client-balloon_comment-box .datetime {
+    font-size: 12px;
+    padding-top: 6px;
+  }
+  .worker-balloon_img-box {
+    width: 14%;
+  }
+  .worker-balloon_img-box .icon-default {
+    top: 40px;
+  }
+  .worker-balloon_img-box .worker_name {
+    font-size: 8px;
+  }
+  .worker-balloon_comment {
+    width: 63%;
+  }
+  .worker-balloon_comment-box {
+    padding: 20px;
+    font-size: 14px;
+  }
+  .worker-balloon_comment-box .datetime {
+    font-size: 12px;
+    padding-top: 6px;
+  }
 }
 </style>
